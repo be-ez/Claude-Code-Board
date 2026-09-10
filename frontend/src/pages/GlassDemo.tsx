@@ -1,16 +1,18 @@
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 
 export const GlassDemo: React.FC = () => {
+  const { t } = useTranslation();
   return (
     <div className="min-h-screen p-8 relative overflow-hidden">
-      <h1 className="text-3xl font-bold mb-8 text-center">玻璃效果展示</h1>
+      <h1 className="text-3xl font-bold mb-8 text-center">{t('glassDemo.title')}</h1>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 max-w-7xl mx-auto">
 
         {/* 無效果 - 對照組 */}
         <div className="p-6 bg-white border border-gray-200 rounded-xl">
-          <h2 className="text-xl font-semibold mb-2">普通白色背景</h2>
-          <p className="text-gray-600">這是沒有玻璃效果的普通卡片</p>
+          <h2 className="text-xl font-semibold mb-2">{t('glassDemo.plainTitle')}</h2>
+          <p className="text-gray-600">{t('glassDemo.plainDesc')}</p>
           <div className="mt-4 p-3 bg-gray-100 rounded">
             backdrop-filter: none
           </div>
@@ -18,8 +20,8 @@ export const GlassDemo: React.FC = () => {
 
         {/* glass 類別 */}
         <div className="glass p-6 rounded-xl">
-          <h2 className="text-xl font-semibold mb-2">標準玻璃 (.glass)</h2>
-          <p className="text-gray-600">基本的玻璃效果</p>
+          <h2 className="text-xl font-semibold mb-2">{t('glassDemo.standardTitle')}</h2>
+          <p className="text-gray-600">{t('glassDemo.standardDesc')}</p>
           <div className="mt-4 p-3 bg-white/50 rounded">
             blur(10px) saturate(180%)
           </div>
@@ -27,8 +29,8 @@ export const GlassDemo: React.FC = () => {
 
         {/* glass-card 類別 */}
         <div className="glass-card p-6 rounded-xl">
-          <h2 className="text-xl font-semibold mb-2">卡片玻璃 (.glass-card)</h2>
-          <p className="text-gray-600">用於卡片的玻璃效果</p>
+          <h2 className="text-xl font-semibold mb-2">{t('glassDemo.cardTitle')}</h2>
+          <p className="text-gray-600">{t('glassDemo.cardDesc')}</p>
           <div className="mt-4 p-3 bg-white/50 rounded">
             blur(16px) saturate(150%)
           </div>
@@ -36,8 +38,8 @@ export const GlassDemo: React.FC = () => {
 
         {/* glass-ultra 類別 */}
         <div className="glass-ultra p-6 rounded-xl">
-          <h2 className="text-xl font-semibold mb-2">超強玻璃 (.glass-ultra)</h2>
-          <p className="text-gray-600">加強版玻璃效果</p>
+          <h2 className="text-xl font-semibold mb-2">{t('glassDemo.ultraTitle')}</h2>
+          <p className="text-gray-600">{t('glassDemo.ultraDesc')}</p>
           <div className="mt-4 p-3 bg-white/50 rounded">
             blur(24px) saturate(200%)
           </div>
@@ -45,8 +47,8 @@ export const GlassDemo: React.FC = () => {
 
         {/* glass-extreme 類別 */}
         <div className="glass-extreme p-6 rounded-xl">
-          <h2 className="text-xl font-semibold mb-2">極致玻璃 (.glass-extreme)</h2>
-          <p className="text-gray-600">最強的玻璃效果</p>
+          <h2 className="text-xl font-semibold mb-2">{t('glassDemo.extremeTitle')}</h2>
+          <p className="text-gray-600">{t('glassDemo.extremeDesc')}</p>
           <div className="mt-4 p-3 bg-white/50 rounded">
             blur(20px) saturate(200%)
           </div>
@@ -54,10 +56,10 @@ export const GlassDemo: React.FC = () => {
 
         {/* glass-fallback 類別 */}
         <div className="glass-fallback p-6 rounded-xl">
-          <h2 className="text-xl font-semibold mb-2">備用玻璃 (.glass-fallback)</h2>
-          <p className="text-gray-600">純CSS實現，不需backdrop-filter</p>
+          <h2 className="text-xl font-semibold mb-2">{t('glassDemo.fallbackTitle')}</h2>
+          <p className="text-gray-600">{t('glassDemo.fallbackDesc')}</p>
           <div className="mt-4 p-3 bg-white/50 rounded">
-            純CSS漸變和陰影
+            {t('glassDemo.fallbackNote')}
           </div>
         </div>
 
@@ -68,10 +70,10 @@ export const GlassDemo: React.FC = () => {
           border: '1px solid rgba(255, 255, 255, 0.2)',
           boxShadow: '0 8px 32px rgba(0, 0, 0, 0.2)'
         }}>
-          <h2 className="text-xl font-semibold mb-2">超低透明度測試</h2>
-          <p className="text-gray-600">0.05透明度 + blur(40px)</p>
+          <h2 className="text-xl font-semibold mb-2">{t('glassDemo.lowOpacityTitle')}</h2>
+          <p className="text-gray-600">{t('glassDemo.lowOpacityDesc')}</p>
           <div className="mt-4 p-3 bg-white/50 rounded">
-            最低透明度測試
+            {t('glassDemo.lowOpacityNote')}
           </div>
         </div>
 
@@ -82,10 +84,10 @@ export const GlassDemo: React.FC = () => {
           border: '2px solid rgba(255, 255, 255, 0.5)',
           boxShadow: 'inset 0 0 20px rgba(255, 255, 255, 0.5)'
         }}>
-          <h2 className="text-xl font-semibold mb-2">純模糊測試</h2>
+          <h2 className="text-xl font-semibold mb-2">{t('glassDemo.blurTitle')}</h2>
           <p className="text-gray-600">transparent + blur(50px)</p>
           <div className="mt-4 p-3 bg-white/50 rounded">
-            只有模糊沒有背景
+            {t('glassDemo.blurDesc')}
           </div>
         </div>
 
@@ -96,10 +98,10 @@ export const GlassDemo: React.FC = () => {
           border: '1px solid rgba(255, 255, 255, 0.3)',
           boxShadow: '0 8px 32px rgba(59, 130, 246, 0.2)'
         }}>
-          <h2 className="text-xl font-semibold mb-2">彩色玻璃測試</h2>
-          <p className="text-gray-600">藍紫漸變 + hue-rotate</p>
+          <h2 className="text-xl font-semibold mb-2">{t('glassDemo.colorTitle')}</h2>
+          <p className="text-gray-600">{t('glassDemo.colorDesc')}</p>
           <div className="mt-4 p-3 bg-white/50 rounded">
-            色相旋轉效果
+            {t('glassDemo.colorNote')}
           </div>
         </div>
 

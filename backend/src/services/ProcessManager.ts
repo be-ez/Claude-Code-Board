@@ -19,6 +19,7 @@ import { getNotificationService } from './NotificationService';
 import { StreamProcessor } from './StreamProcessor';
 import { MessageAccumulator } from './MessageAccumulator';
 import { UnifiedStreamProcessor } from './UnifiedStreamProcessor';
+import { t } from '../i18n';
 
 /**
  * ProcessManager - 使用 npx 執行 Claude Code
@@ -359,7 +360,7 @@ export class ProcessManager extends EventEmitter {
       if (session) {
         notificationService.notify({
           title: 'Claude Code Board',
-          message: `任務執行完成：${session.name}`,
+          message: t('session.taskCompleted', undefined, { name: session.name }),
           sound: true
         }).catch(err => {
           logger.warn('Failed to send notification:', err);
@@ -544,7 +545,7 @@ export class ProcessManager extends EventEmitter {
       if (session) {
         notificationService.notify({
           title: 'Claude Code Board',
-          message: `任務執行完成：${session.name}`,
+          message: t('session.taskCompleted', undefined, { name: session.name }),
           sound: true
         }).catch(err => {
           logger.warn('Failed to send notification:', err);
@@ -645,7 +646,7 @@ export class ProcessManager extends EventEmitter {
             if (session) {
               notificationService.notify({
                 title: 'Claude Code Board',
-                message: `任務執行完成：${session.name}`,
+                message: t('session.taskCompleted', undefined, { name: session.name }),
                 sound: true
               }).catch(err => {
                 logger.warn('Failed to send notification:', err);

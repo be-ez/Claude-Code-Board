@@ -1,4 +1,5 @@
 import { Session, SessionStatus } from '../types/session.types';
+import i18n from '../i18n';
 
 export type SortType = 
   | 'created_desc'  // 最新創建優先
@@ -83,12 +84,12 @@ export const sortSessions = (sessions: Session[], sortType: SortType): Session[]
 };
 
 export const getSortOptions = () => [
-  { value: 'updated_desc', label: '最近更新' },
-  { value: 'created_desc', label: '最新創建' },
-  { value: 'created_asc', label: '最舊創建' },
-  { value: 'name_asc', label: '名稱 A-Z' },
-  { value: 'name_desc', label: '名稱 Z-A' },
-  { value: 'status', label: '狀態優先' },
-  { value: 'messages_desc', label: '訊息數多' },
-  { value: 'messages_asc', label: '訊息數少' }
+  { value: 'updated_desc', label: i18n.t('sort.recentlyUpdated') },
+  { value: 'created_desc', label: i18n.t('sort.newestCreated') },
+  { value: 'created_asc', label: i18n.t('sort.oldestCreated') },
+  { value: 'name_asc', label: i18n.t('sort.nameAsc') },
+  { value: 'name_desc', label: i18n.t('sort.nameDesc') },
+  { value: 'status', label: i18n.t('sort.byStatus') },
+  { value: 'messages_desc', label: i18n.t('sort.mostMessages') },
+  { value: 'messages_asc', label: i18n.t('sort.fewestMessages') }
 ];

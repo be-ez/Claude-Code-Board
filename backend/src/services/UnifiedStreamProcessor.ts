@@ -566,24 +566,23 @@ export class UnifiedStreamProcessor extends EventEmitter {
       if (contentItem.type === 'tool_result') {
         // 直接處理 tool_result，顯示工具 ID 和結果
         const toolId = contentItem.tool_use_id;
-        
-        let resultContent: string;
-        if (contentItem.is_error) {
-          resultContent = `❌ 工具 ${toolId} 執行失敗: ${contentItem.content}`;
-        } else {
-          resultContent = `✅ 工具 ${toolId} 執行完成`;
-        }
-        
+
+        // The result is the tool's actual output, carried as an `output`
+        // message keyed by toolId so the UI can pair it with its call.
+        const resultContent =
+          typeof contentItem.content === 'string'
+            ? contentItem.content
+            : JSON.stringify(contentItem.content, null, 2);
+
         const toolResultMessage: ClaudeStreamMessage = {
           sessionId,
-          type: 'tool_use',
+          type: 'output',
           content: resultContent,
           timestamp: new Date(),
           metadata: {
             messageId,
             toolStatus: contentItem.is_error ? 'error' : 'complete',
-            toolId: contentItem.tool_use_id,
-            toolOutput: contentItem.content,
+            toolId,
             isError: contentItem.is_error
           }
         };
@@ -591,11 +590,11 @@ export class UnifiedStreamProcessor extends EventEmitter {
         this.emit('message', toolResultMessage);
         
         // 儲存工具結果
-        this.saveMessage(sessionId, 'tool_use', resultContent, {
+        this.saveMessage(sessionId, 'output', resultContent, {
           messageId,
-          toolId: contentItem.tool_use_id,
-          isError: contentItem.is_error,
-          output: contentItem.content
+          toolId,
+          toolStatus: contentItem.is_error ? 'error' : 'complete',
+          isError: contentItem.is_error
         });
         
       } else if (contentItem.type === 'text') {

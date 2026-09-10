@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { ArrowLeft, FileText, Copy, CheckCircle } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 
 interface AgentDetail {
   name: string;
@@ -11,6 +12,7 @@ interface AgentDetail {
 }
 
 const AgentPromptDetailPage: React.FC = () => {
+  const { t } = useTranslation();
   const { name } = useParams<{ name: string }>();
   const navigate = useNavigate();
   const [agent, setAgent] = useState<AgentDetail | null>(null);
@@ -61,7 +63,7 @@ const AgentPromptDetailPage: React.FC = () => {
   if (loading) {
     return (
       <div className="flex items-center justify-center h-screen">
-        <div className="text-gray-500">載入中...</div>
+        <div className="text-gray-500">{t('common.loading')}</div>
       </div>
     );
   }
@@ -70,12 +72,12 @@ const AgentPromptDetailPage: React.FC = () => {
     return (
       <div className="container mx-auto p-6">
         <div className="bg-red-50 rounded-lg p-8 text-center">
-          <p className="text-red-600 mb-4">找不到 Agent: {name}</p>
+          <p className="text-red-600 mb-4">{t('agentPrompts.notFound', { name })}</p>
           <button
             onClick={handleBack}
             className="px-4 py-2 bg-gray-200 text-gray-700 rounded hover:bg-gray-300 transition-colors"
           >
-            返回列表
+            {t('splitView.backToList')}
           </button>
         </div>
       </div>
@@ -91,7 +93,7 @@ const AgentPromptDetailPage: React.FC = () => {
             <button
               onClick={handleBack}
               className="p-2 hover:bg-gray-100 rounded transition-colors"
-              title="返回列表"
+              title={t('splitView.backToList')}
             >
               <ArrowLeft className="h-5 w-5 text-gray-600" />
             </button>
@@ -110,12 +112,12 @@ const AgentPromptDetailPage: React.FC = () => {
             {copied ? (
               <>
                 <CheckCircle className="h-4 w-4" />
-                <span>已複製</span>
+                <span>{t('agentPrompts.copied')}</span>
               </>
             ) : (
               <>
                 <Copy className="h-4 w-4" />
-                <span>複製內容</span>
+                <span>{t('agentPrompts.copyContent')}</span>
               </>
             )}
           </button>
@@ -127,14 +129,14 @@ const AgentPromptDetailPage: React.FC = () => {
         <div className="bg-white rounded-lg shadow mb-6 p-4">
           {agent.description && (
             <div className="mb-3">
-              <h3 className="text-sm font-semibold text-gray-700 mb-1">描述</h3>
+              <h3 className="text-sm font-semibold text-gray-700 mb-1">{t('common.description')}</h3>
               <p className="text-gray-600">{agent.description}</p>
             </div>
           )}
           
           {agent.tools && agent.tools.length > 0 && (
             <div>
-              <h3 className="text-sm font-semibold text-gray-700 mb-1">工具</h3>
+              <h3 className="text-sm font-semibold text-gray-700 mb-1">{t('messageItem.tool')}</h3>
               <div className="flex flex-wrap gap-2">
                 {agent.tools.map((tool, index) => (
                   <span
@@ -155,7 +157,7 @@ const AgentPromptDetailPage: React.FC = () => {
         <div className="border-b px-4 py-3">
           <div className="flex items-center space-x-2">
             <FileText className="h-5 w-5 text-gray-500" />
-            <h2 className="font-semibold text-gray-900">提示詞內容</h2>
+            <h2 className="font-semibold text-gray-900">{t('agentPrompts.promptContent')}</h2>
           </div>
         </div>
         
@@ -174,16 +176,16 @@ const AgentPromptDetailPage: React.FC = () => {
           onClick={handleBack}
           className="px-4 py-2 bg-gray-200 text-gray-700 rounded hover:bg-gray-300 transition-colors"
         >
-          返回列表
+          {t('splitView.backToList')}
         </button>
         <button
           className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 transition-colors"
           onClick={() => {
             // TODO: 實作套用到工作流程的功能
-            alert('套用功能尚未實作');
+            alert(t('agentPrompts.applyNotImplemented'));
           }}
         >
-          套用到工作流程
+          {t('agentPrompts.applyToWorkflow')}
         </button>
       </div>
     </div>

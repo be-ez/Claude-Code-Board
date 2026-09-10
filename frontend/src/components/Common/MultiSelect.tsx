@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { X, ChevronDown, Plus } from 'lucide-react';
 import { cn } from '../../utils';
+import { useTranslation } from 'react-i18next';
 
 interface Option {
   value: string;
@@ -26,14 +27,17 @@ export const MultiSelect: React.FC<MultiSelectProps> = ({
   options,
   value,
   onChange,
-  placeholder = '選擇項目...',
+  placeholder: placeholderProp,
   disabled = false,
   loading = false,
   onCreateNew,
-  createNewPlaceholder = '建立新項目',
+  createNewPlaceholder: createNewPlaceholderProp,
   className,
   maxHeight = 200,
 }) => {
+  const { t } = useTranslation();
+  const placeholder = placeholderProp ?? t('multiSelect.placeholder');
+  const createNewPlaceholder = createNewPlaceholderProp ?? t('multiSelect.createNew');
   const [isOpen, setIsOpen] = useState(false);
   const [search, setSearch] = useState('');
   const [isCreating, setIsCreating] = useState(false);
@@ -140,7 +144,7 @@ export const MultiSelect: React.FC<MultiSelectProps> = ({
             <input
               type="text"
               className="w-full px-3 py-1.5 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-              placeholder="搜尋..."
+              placeholder={t('common.search')}
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               onClick={(e) => e.stopPropagation()}
@@ -151,7 +155,7 @@ export const MultiSelect: React.FC<MultiSelectProps> = ({
           <div className="overflow-y-auto" style={{ maxHeight }}>
             {loading ? (
               <div className="px-3 py-8 text-center text-gray-500">
-                載入中...
+                {t('common.loading')}
               </div>
             ) : filteredOptions.length > 0 ? (
               filteredOptions.map(option => {
@@ -192,7 +196,7 @@ export const MultiSelect: React.FC<MultiSelectProps> = ({
               })
             ) : (
               <div className="px-3 py-4 text-center text-gray-500 text-sm">
-                沒有找到符合的項目
+                {t('multiSelect.noMatches')}
               </div>
             )}
 
@@ -217,7 +221,7 @@ export const MultiSelect: React.FC<MultiSelectProps> = ({
                         onClick={handleCreateNew}
                         disabled={!newItemName.trim() || loading || isLoading}
                       >
-                        {isLoading ? '建立中...' : '建立'}
+                        {isLoading ? t('common.creating') : t('common.create')}
                       </button>
                       <button
                         className="px-3 py-1.5 text-sm bg-gray-100 text-gray-700 rounded-md hover:bg-gray-200"
@@ -226,7 +230,7 @@ export const MultiSelect: React.FC<MultiSelectProps> = ({
                           setNewItemName('');
                         }}
                       >
-                        取消
+                        {t('common.cancel')}
                       </button>
                     </div>
                   </div>

@@ -7,6 +7,7 @@ import { CreateSessionRequest, Session } from '../../types/session.types';
 import { workflowStageService, WorkflowStage } from '../../services/workflowStageService';
 import { useWorkItemStore } from '../../stores/workItemStore';
 import toast from 'react-hot-toast';
+import { useTranslation } from 'react-i18next';
 
 interface CreateSessionModalProps {
   isOpen: boolean;
@@ -23,6 +24,7 @@ export const CreateSessionModal: React.FC<CreateSessionModalProps> = ({
   prefillData,
   onCreated,
 }) => {
+  const { t } = useTranslation();
   const [formData, setFormData] = useState({
     name: '',
     workingDir: '',
@@ -104,17 +106,17 @@ export const CreateSessionModal: React.FC<CreateSessionModalProps> = ({
     e.preventDefault();
     
     if (!formData.name.trim()) {
-      toast.error('請輸入 Session 名稱');
+      toast.error(t('createSession.nameRequired'));
       return;
     }
     
     if (!formData.workingDir.trim()) {
-      toast.error('請輸入工作目錄');
+      toast.error(t('createSession.workingDirRequired'));
       return;
     }
     
     if (!formData.task.trim()) {
-      toast.error('請輸入任務描述');
+      toast.error(t('createSession.taskRequired'));
       return;
     }
 
@@ -133,7 +135,7 @@ export const CreateSessionModal: React.FC<CreateSessionModalProps> = ({
 
       const newSession = await createSession(request);
 
-      toast.success('Session 建立成功！');
+      toast.success(t('createSession.success'));
 
       // 重置表單，但保留 Work Item ID 和預設路徑如果有的話
       const workItem = defaultWorkItemId ? workItems.find(w => w.work_item_id === defaultWorkItemId) : null;
@@ -155,7 +157,7 @@ export const CreateSessionModal: React.FC<CreateSessionModalProps> = ({
         onCreated(newSession);
       }
     } catch (error) {
-      toast.error('建立 Session 失敗');
+      toast.error(t('createSession.failed'));
     } finally {
       setIsSubmitting(false);
     }
@@ -177,7 +179,7 @@ export const CreateSessionModal: React.FC<CreateSessionModalProps> = ({
             <div className="p-1.5 bg-gradient-to-br from-blue-500 to-blue-600 rounded-lg shadow-soft">
               <MessageSquare className="w-5 h-5 text-white" />
             </div>
-            <h2 className="text-xl font-bold bg-gradient-to-r from-gray-800 to-gray-600 bg-clip-text text-transparent">建立新 Session</h2>
+            <h2 className="text-xl font-bold bg-gradient-to-r from-gray-800 to-gray-600 bg-clip-text text-transparent">{t('createSession.title')}</h2>
           </div>
           <button
             onClick={onClose}
@@ -194,10 +196,10 @@ export const CreateSessionModal: React.FC<CreateSessionModalProps> = ({
             <div className="mx-4 mt-4 p-3 glass-card rounded-lg border border-blue-200/50 bg-blue-50/10">
               <div className="flex items-center gap-2 text-blue-700 font-medium">
                 <MessageSquare className="w-4 h-4" />
-                <span>基於「{prefillData.baseSessionName || '前一個對話'}」快速建立</span>
+                <span>{t('createSession.quickCreateFrom', { name: prefillData.baseSessionName || t('createSession.previousConversation') })}</span>
               </div>
               <p className="text-blue-600 text-sm mt-1 opacity-90">
-                已自動填入基礎設定，請調整任務內容和選擇適合的 Agent
+                {t('createSession.autofilledHint')}
               </p>
             </div>
           )}
@@ -210,14 +212,14 @@ export const CreateSessionModal: React.FC<CreateSessionModalProps> = ({
                 <div className="glass-card p-4 rounded-lg border border-white/40 bg-white/15">
                   <h3 className="text-base font-semibold text-gray-800 mb-3 flex items-center gap-2">
                     <Code className="w-4 h-4 text-blue-600" />
-                    基本設定
+                    {t('createSession.basicSettings')}
                   </h3>
 
                   {/* Session 名稱 */}
                   <div className="space-y-3">
                     <div>
                       <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-1.5">
-                        Session 名稱 *
+                        {t('createSession.nameLabel')}
                       </label>
                       <input
                         type="text"
@@ -225,7 +227,7 @@ export const CreateSessionModal: React.FC<CreateSessionModalProps> = ({
                         name="name"
                         value={formData.name}
                         onChange={handleInputChange}
-                        placeholder="例如：實作使用者登入功能"
+                        placeholder={t('createSession.namePlaceholder')}
                         className="w-full px-3 py-2 glass-ultra border border-white/40 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 backdrop-blur-sm bg-white/10"
                         required
                       />
@@ -235,9 +237,9 @@ export const CreateSessionModal: React.FC<CreateSessionModalProps> = ({
                     <div>
                       <div className="flex items-center justify-between mb-1.5">
                         <label htmlFor="workingDir" className="text-sm font-medium text-gray-700">
-                          工作目錄 *
+                          {t('createSession.workingDirLabel')}
                         </label>
-                        <span className="text-xs text-gray-500">從常用路徑選擇或直接輸入</span>
+                        <span className="text-xs text-gray-500">{t('createSession.workingDirHint')}</span>
                       </div>
 
                       {/* 常用路徑快速選擇 */}
@@ -251,7 +253,7 @@ export const CreateSessionModal: React.FC<CreateSessionModalProps> = ({
                           value=""
                           className="w-full px-3 py-2 glass-ultra border border-white/40 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 backdrop-blur-sm bg-white/10 text-sm mb-2"
                         >
-                          <option value="">-- 選擇常用路徑 --</option>
+                          <option value="">{t('createSession.selectCommonPath')}</option>
                           {commonPaths.map((pathOption) => {
                             const iconEmoji = pathOption.icon === 'Home' ? '🏠' : pathOption.icon === 'Code' ? '💻' : '📁';
                             return (
@@ -270,7 +272,7 @@ export const CreateSessionModal: React.FC<CreateSessionModalProps> = ({
                         name="workingDir"
                         value={formData.workingDir}
                         onChange={handleInputChange}
-                        placeholder="例如：C:\Projects\MyApp"
+                        placeholder={t('createSession.pathPlaceholder')}
                         className="w-full px-3 py-2 glass-ultra border border-white/40 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 backdrop-blur-sm bg-white/10"
                         required
                       />
@@ -289,12 +291,12 @@ export const CreateSessionModal: React.FC<CreateSessionModalProps> = ({
                 <div className="glass-card p-4 rounded-lg border border-white/40 bg-white/15">
                   <h3 className="text-base font-semibold text-gray-800 mb-3 flex items-center gap-2">
                     <Briefcase className="w-4 h-4 text-purple-600" />
-                    Work Item 關聯
+                    {t('createSession.workItemLink')}
                   </h3>
 
                   <div>
                     <label htmlFor="work_item_id" className="block text-sm font-medium text-gray-700 mb-1.5">
-                      關聯 Work Item {defaultWorkItemId ? '(已自動關聯)' : '(選填)'}
+                      {t('createSession.linkWorkItem', { suffix: defaultWorkItemId ? t('createSession.autoLinked') : t('common.optional') })}
                     </label>
                     <select
                       id="work_item_id"
@@ -306,7 +308,7 @@ export const CreateSessionModal: React.FC<CreateSessionModalProps> = ({
                         defaultWorkItemId ? 'opacity-60 cursor-not-allowed' : ''
                       }`}
                     >
-                      <option value="">不關聯到 Work Item</option>
+                      <option value="">{t('createSession.noWorkItem')}</option>
                       {workItems
                         .filter(item => item.status === 'planning' || item.status === 'in_progress' || item.work_item_id === defaultWorkItemId)
                         .map(item => (
@@ -321,13 +323,13 @@ export const CreateSessionModal: React.FC<CreateSessionModalProps> = ({
                       <div className="mt-2 p-3 glass-ultra rounded-lg border border-purple-200/50 bg-purple-50/10">
                         <div className="flex items-center space-x-1.5 mb-1.5">
                           <Briefcase className="w-3.5 h-3.5 text-purple-600" />
-                          <span className="text-sm font-medium text-purple-900">Work Item 資訊</span>
+                          <span className="text-sm font-medium text-purple-900">{t('createSession.workItemInfo')}</span>
                         </div>
                         {(() => {
                           const selectedWorkItem = workItems.find(w => w.work_item_id === formData.work_item_id);
                           if (!selectedWorkItem) return null;
                           return (
-                            <p className="text-sm text-purple-700">{selectedWorkItem.description || '無描述'}</p>
+                            <p className="text-sm text-purple-700">{selectedWorkItem.description || t('common.noDescription')}</p>
                           );
                         })()}
                       </div>
@@ -339,12 +341,12 @@ export const CreateSessionModal: React.FC<CreateSessionModalProps> = ({
                 <div className="glass-card p-4 rounded-lg border border-white/40 bg-white/15">
                   <h3 className="text-base font-semibold text-gray-800 mb-3 flex items-center gap-2">
                     <Workflow className="w-4 h-4 text-indigo-600" />
-                    工作流程階段
+                    {t('nav.workflowStages')}
                   </h3>
 
                   <div>
                     <label htmlFor="workflow_stage_id" className="block text-sm font-medium text-gray-700 mb-1.5">
-                      選擇階段 (選填)
+                      {t('createSession.selectStage')}
                     </label>
                     <select
                       id="workflow_stage_id"
@@ -353,7 +355,7 @@ export const CreateSessionModal: React.FC<CreateSessionModalProps> = ({
                       onChange={handleInputChange}
                       className="w-full px-3 py-2 glass-ultra border border-white/40 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 backdrop-blur-sm bg-white/10"
                     >
-                      <option value="">不使用工作流程階段</option>
+                      <option value="">{t('createSession.noStage')}</option>
                       {workflowStages.map(stage => (
                         <option key={stage.stage_id} value={stage.stage_id}>
                           {stage.name} - {stage.description}
@@ -366,7 +368,7 @@ export const CreateSessionModal: React.FC<CreateSessionModalProps> = ({
                       <div className="mt-2 p-3 glass-ultra rounded-lg border border-blue-200/50 bg-blue-50/10">
                         <div className="flex items-center space-x-1.5 mb-2">
                           <Workflow className="w-3.5 h-3.5 text-blue-600" />
-                          <span className="text-sm font-medium text-blue-900">建議的工作項目</span>
+                          <span className="text-sm font-medium text-blue-900">{t('createSession.suggestedTasks')}</span>
                         </div>
                         <ul className="text-sm text-blue-700 space-y-1.5">
                           {selectedStage.suggested_tasks.map((task, index) => (
@@ -385,7 +387,7 @@ export const CreateSessionModal: React.FC<CreateSessionModalProps> = ({
                 <div className="glass-card p-4 rounded-lg border border-white/40 bg-white/15">
                   <h3 className="text-base font-semibold text-gray-800 mb-3 flex items-center gap-2">
                     <ShieldOff className="w-4 h-4 text-orange-600" />
-                    進階選項
+                    {t('createSession.advanced')}
                   </h3>
 
                   <div className="space-y-3">
@@ -400,13 +402,13 @@ export const CreateSessionModal: React.FC<CreateSessionModalProps> = ({
                         className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-2 focus:ring-blue-500"
                       />
                       <label htmlFor="continueChat" className="text-sm font-medium text-gray-700 flex-1">
-                        繼續最近的對話
+                        {t('createSession.continueRecent')}
                       </label>
                       <MessageSquare className="w-3.5 h-3.5 text-blue-500" />
                     </div>
                     {formData.continueChat && (
                       <div className="text-xs text-gray-600 pl-7 p-2 bg-blue-50/50 rounded border border-blue-200/30">
-                        💡 將使用 Claude Code 的 --continue 參數延續最近的對話
+                        {t('createSession.continueHint')}
                       </div>
                     )}
 
@@ -421,13 +423,13 @@ export const CreateSessionModal: React.FC<CreateSessionModalProps> = ({
                         className="w-4 h-4 text-red-600 border-gray-300 rounded focus:ring-2 focus:ring-red-500"
                       />
                       <label htmlFor="dangerouslySkipPermissions" className="text-sm font-medium text-gray-700 flex-1">
-                        <span className="text-red-600 font-semibold">危險：跳過權限檢查</span>
+                        <span className="text-red-600 font-semibold">{t('createSession.skipPermissions')}</span>
                       </label>
                       <ShieldOff className="w-3.5 h-3.5 text-red-500" />
                     </div>
                     {formData.dangerouslySkipPermissions && (
                       <div className="text-xs text-red-700 pl-7 p-2.5 bg-red-50/50 rounded border border-red-200/50">
-                        ⚠️ 警告：這將允許 Claude Code 在沒有權限確認的情況下執行操作，可能會對您的系統造成意外的變更。僅在完全信任的環境中使用。
+                        {t('createSession.skipPermissionsWarning')}
                       </div>
                     )}
                   </div>
@@ -443,14 +445,14 @@ export const CreateSessionModal: React.FC<CreateSessionModalProps> = ({
                       <div className="p-1.5 bg-green-100 rounded-lg">
                         <MessageSquare className="w-4 h-4 text-green-600" />
                       </div>
-                      任務描述
-                      <span className="text-xs bg-red-100 text-red-600 px-2 py-0.5 rounded-full font-medium">核心必填</span>
+                      {t('createSession.taskSection')}
+                      <span className="text-xs bg-red-100 text-red-600 px-2 py-0.5 rounded-full font-medium">{t('createSession.requiredBadge')}</span>
                     </h3>
                   </div>
 
                   <div className="flex flex-col flex-1">
                     <label htmlFor="task" className="block text-sm font-medium text-gray-700 mb-1.5 flex-shrink-0">
-                      任務內容 *
+                      {t('createSession.taskLabel')}
                     </label>
                     <div className="relative flex-1 flex flex-col">
                       <textarea
@@ -458,19 +460,19 @@ export const CreateSessionModal: React.FC<CreateSessionModalProps> = ({
                         name="task"
                         value={formData.task}
                         onChange={handleInputChange}
-                        placeholder="請具體描述你的需求...&#10;例如：實作用戶登入功能，包含表單驗證和錯誤處理&#10;或：重構現有的API，提升性能並添加錯誤日誌&#10;或：分析並修復目前的性能問題，重點關注加載速度"
+                        placeholder={t('createSession.taskPlaceholder')}
                         className="w-full h-full px-3 py-2.5 glass-ultra border border-white/40 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500/50 focus:border-green-500/50 focus:bg-white/35 bg-white/25 text-gray-800 placeholder-gray-500 leading-relaxed transition-colors duration-150 resize-none flex-1"
                         required
                       />
                       {/* 字數統計 */}
                       <div className="absolute bottom-2 right-3 text-xs text-gray-500 bg-white/90 px-2 py-1 rounded">
-                        {formData.task.length} 字元
+                        {t('common.charCount', { count: formData.task.length })}
                       </div>
                     </div>
 
                     {/* 快速任務模板 */}
                     <div className="mt-2 flex-shrink-0">
-                      <div className="text-xs text-gray-600 font-medium mb-1.5">快速模板</div>
+                      <div className="text-xs text-gray-600 font-medium mb-1.5">{t('createSession.quickTemplates')}</div>
                       <div className="flex flex-wrap gap-1.5">
                         {activeTemplates.map((template) => (
                           <button
@@ -501,7 +503,7 @@ export const CreateSessionModal: React.FC<CreateSessionModalProps> = ({
                 onClick={onClose}
                 className="flex-1 px-4 py-2.5 glass-ultra border border-white/40 text-gray-800 rounded-lg hover:bg-white/25 transition-all font-bold"
               >
-                取消
+                {t('common.cancel')}
               </button>
               <button
                 type="submit"
@@ -511,10 +513,10 @@ export const CreateSessionModal: React.FC<CreateSessionModalProps> = ({
                 {isSubmitting ? (
                   <div className="flex items-center justify-center space-x-2">
                     <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                    <span className="font-bold">建立中...</span>
+                    <span className="font-bold">{t('common.creating')}</span>
                   </div>
                 ) : (
-                  <span className="font-bold">建立 Session</span>
+                  <span className="font-bold">{t('nav.createSession')}</span>
                 )}
               </button>
             </div>

@@ -21,7 +21,6 @@ import {
   RefreshCw
 } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
-import { zhTW } from 'date-fns/locale';
 import { useWorkItemStore } from '../stores/workItemStore';
 import { useSessions } from '../hooks/useSessions';
 import { SessionCard } from '../components/Session/SessionCard';
@@ -33,8 +32,12 @@ import { workItemApi } from '../services/workItemApi';
 import { SessionDetail } from '../components/Session/SessionDetail';
 import { SearchBar } from '../components/Common/SearchBar';
 import { MarkdownRenderer } from '../components/Common/MarkdownRenderer';
+import { useTranslation } from 'react-i18next';
+import { getDateLocale } from '../i18n';
 
 export const WorkItemDetailPage: React.FC = () => {
+  const { t } = useTranslation();
+  const dateLocale = getDateLocale();
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { 
@@ -142,7 +145,9 @@ export const WorkItemDetailPage: React.FC = () => {
       if (h2Match) {
         const titleContent = h2Match[1].trim();
         // 跳過一些可能的系統標題
-        if (!titleContent.match(/^(dev\.md|開發日誌|Work Item|任務|備註)/i)) {
+        // Matches dev.md headings, which Claude Code may have written in either
+        // language, so both sets of section titles stay recognised.
+        if (!titleContent.match(/^(dev\.md|開發日誌|Dev Log|Work Item|任務|Task|備註|Notes)/i)) {
           sections.push({
             title: titleContent,
             sessionName: titleContent,
@@ -208,10 +213,10 @@ export const WorkItemDetailPage: React.FC = () => {
 
   // 處理 Session 刪除
   const handleSessionDelete = async (sessionId: string) => {
-    if (window.confirm('確定要刪除這個 Session 嗎？這個動作無法復原。')) {
+    if (window.confirm(t('workItemDetail.confirmDeleteSession'))) {
       try {
         await deleteSession(sessionId);
-        toast.success('Session 已刪除');
+        toast.success(t('sessionDetail.deleted'));
         
         // 如果刪除的是當前選中的 Session，清除選擇狀態
         if (selectedSessionId === sessionId) {
@@ -225,7 +230,7 @@ export const WorkItemDetailPage: React.FC = () => {
         loadDevMd(); // 刪除後重新載入 dev.md
       } catch (error) {
         console.error('Failed to delete session:', error);
-        toast.error('刪除 Session 失敗');
+        toast.error(t('workItemDetail.deleteSessionFailed'));
       }
     }
   };
@@ -268,29 +273,29 @@ export const WorkItemDetailPage: React.FC = () => {
       });
       
       const statusText: Record<string, string> = {
-        'planning': '已設為規劃中',
-        'in_progress': '已開始執行',
-        'completed': '已標記完成',
-        'cancelled': '已取消'
+        'planning': t('workItemDetail.setPlanning'),
+        'in_progress': t('workItemDetail.setInProgress'),
+        'completed': t('workItemDetail.setCompleted'),
+        'cancelled': t('workItemStatus.cancelled')
       };
-      toast.success(`Work Item ${statusText[status] || '狀態已更新'}`);
+      toast.success(t('workItemDetail.workItemStatus', { status: statusText[status] || t('workItemDetail.statusUpdated') }));
     } catch (err) {
       console.error('Failed to update work item status:', err);
-      toast.error('更新狀態失敗');
+      toast.error(t('workItemDetail.statusUpdateFailed'));
     }
   };
 
 
   const handleDelete = async () => {
     if (!id) return;
-    if (window.confirm('確定要刪除這個 Work Item 嗎？相關的 Sessions 不會被刪除，但會解除關聯。')) {
+    if (window.confirm(t('workItemDetail.confirmDelete'))) {
       try {
         await deleteWorkItem(id);
-        toast.success('Work Item 已刪除');
+        toast.success(t('workItemDetail.deleted'));
         navigate('/work-items');
       } catch (err) {
         console.error('Failed to delete work item:', err);
-        toast.error('刪除 Work Item 失敗');
+        toast.error(t('workItemDetail.deleteFailed'));
       }
     }
   };
@@ -304,7 +309,7 @@ export const WorkItemDetailPage: React.FC = () => {
       setDevMdContent(content);
     } catch (err) {
       console.error('Failed to load dev.md:', err);
-      toast.error('載入 dev.md 失敗');
+      toast.error(t('workItemDetail.devMdLoadFailed'));
     } finally {
       setLoadingDevMd(false);
     }
@@ -320,7 +325,7 @@ export const WorkItemDetailPage: React.FC = () => {
     a.download = `${currentWorkItem.title}-dev.md`;
     a.click();
     URL.revokeObjectURL(url);
-    toast.success('dev.md 已下載');
+    toast.success(t('workItemDetail.devMdDownloaded'));
   };
 
   if (loading) {
@@ -335,22 +340,22 @@ export const WorkItemDetailPage: React.FC = () => {
     return (
       <div className="flex-1 flex flex-col items-center justify-center">
         <Briefcase className="w-16 h-16 text-gray-300 mb-4" />
-        <h2 className="text-xl font-medium text-gray-900 mb-2">找不到 Work Item</h2>
+        <h2 className="text-xl font-medium text-gray-900 mb-2">{t('workItemDetail.notFound')}</h2>
         <button
           onClick={() => navigate('/work-items')}
           className="text-blue-600 hover:text-blue-700"
         >
-          返回列表
+          {t('splitView.backToList')}
         </button>
       </div>
     );
   }
 
   const statusConfig = {
-    planning: { icon: Clock, color: 'text-gray-500', bg: 'bg-gray-100', label: '規劃中' },
-    in_progress: { icon: Play, color: 'text-blue-500', bg: 'bg-blue-100', label: '進行中' },
-    completed: { icon: CheckCircle, color: 'text-green-500', bg: 'bg-green-100', label: '已完成' },
-    cancelled: { icon: XCircle, color: 'text-red-500', bg: 'bg-red-100', label: '已取消' }
+    planning: { icon: Clock, color: 'text-gray-500', bg: 'bg-gray-100', label: t('workItemStatus.planning') },
+    in_progress: { icon: Play, color: 'text-blue-500', bg: 'bg-blue-100', label: t('workItemStatus.inProgress') },
+    completed: { icon: CheckCircle, color: 'text-green-500', bg: 'bg-green-100', label: t('common.completed') },
+    cancelled: { icon: XCircle, color: 'text-red-500', bg: 'bg-red-100', label: t('workItemStatus.cancelled') }
   };
 
 
@@ -384,7 +389,7 @@ export const WorkItemDetailPage: React.FC = () => {
                     className="flex items-center gap-1 text-gray-500 hover:text-gray-700 transition-colors"
                   >
                     <ArrowLeft className="w-3.5 h-3.5" />
-                    <span className="text-xs">返回</span>
+                    <span className="text-xs">{t('common.back')}</span>
                   </button>
                   <span className="text-gray-300">|</span>
                   <Briefcase className="w-4 h-4 text-gray-400" />
@@ -411,17 +416,17 @@ export const WorkItemDetailPage: React.FC = () => {
 
                   {/* Progress */}
                   <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-purple-50 text-purple-600">
-                    進度 {progress}%
+                    {t('workItemDetail.progress', { progress })}
                   </span>
                   
                   {/* Meta Info inline */}
                   <span className="text-gray-500 flex items-center gap-1 text-xs">
                     <Calendar className="w-3 h-3" />
-                    創建於 {formatDistanceToNow(new Date(currentWorkItem.created_at), { locale: zhTW, addSuffix: true })}
+                    {t('workItem.createdAtLabel', { when: formatDistanceToNow(new Date(currentWorkItem.created_at), { locale: dateLocale, addSuffix: true }) })}
                   </span>
                   {currentWorkItem.completed_at && (
                     <span className="text-green-600 text-xs">
-                      完成於 {formatDistanceToNow(new Date(currentWorkItem.completed_at), { locale: zhTW, addSuffix: true })}
+                      {t('workItem.completedAtLabel', { when: formatDistanceToNow(new Date(currentWorkItem.completed_at), { locale: dateLocale, addSuffix: true }) })}
                     </span>
                   )}
                 </div>
@@ -434,7 +439,7 @@ export const WorkItemDetailPage: React.FC = () => {
                     onClick={() => handleStatusChange('in_progress')}
                     className="px-2 py-1 bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors text-xs"
                   >
-                    開始執行
+                    {t('workItem.start')}
                   </button>
                 )}
                 {currentWorkItem.status === 'in_progress' && (
@@ -442,20 +447,20 @@ export const WorkItemDetailPage: React.FC = () => {
                     onClick={() => handleStatusChange('completed')}
                     className="px-2 py-1 bg-green-600 text-white rounded hover:bg-green-700 transition-colors text-xs"
                   >
-                    標記完成
+                    {t('workItem.markDone')}
                   </button>
                 )}
                 <button
                   onClick={() => setEditDialogOpen(true)}
                   className="p-1 text-gray-600 hover:bg-gray-50 rounded transition-colors"
-                  title="編輯"
+                  title={t('common.edit')}
                 >
                   <Edit2 className="w-3.5 h-3.5" />
                 </button>
                 <button
                   onClick={handleDelete}
                   className="p-1 text-red-600 hover:bg-red-50 rounded transition-colors"
-                  title="刪除"
+                  title={t('common.delete')}
                 >
                   <Trash2 className="w-3.5 h-3.5" />
                 </button>
@@ -473,7 +478,7 @@ export const WorkItemDetailPage: React.FC = () => {
                 Sessions ({workItemSessions.length})
               </h2>
               <span className="text-xs text-gray-500">
-                {completedSessions} 完成
+                {t('workItemDetail.completedCount', { count: completedSessions })}
               </span>
             </div>
             <button
@@ -481,7 +486,7 @@ export const WorkItemDetailPage: React.FC = () => {
               className="px-2 py-1 bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors flex items-center gap-1 text-xs"
             >
               <Plus className="w-3 h-3" />
-              新增
+              {t('common.add')}
             </button>
           </div>
 
@@ -489,7 +494,7 @@ export const WorkItemDetailPage: React.FC = () => {
           {sessions.filter(s => s.work_item_id === id).length > 0 && (
             <div className="mb-3">
               <SearchBar
-                placeholder="搜尋 Sessions..."
+                placeholder={t('workItemDetail.searchSessions')}
                 onSearch={setSessionSearchQuery}
                 defaultValue={sessionSearchQuery}
                 className="w-full"
@@ -517,14 +522,14 @@ export const WorkItemDetailPage: React.FC = () => {
                 <Calendar className="w-8 h-8 mx-auto" />
               </div>
               <p className="text-xs text-gray-500 mb-2">
-                還沒有 Sessions
+                {t('workItemDetail.noSessions')}
               </p>
               <button
                 onClick={() => setCreateSessionOpen(true)}
                 className="px-2 py-1 bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors inline-flex items-center gap-1 text-xs"
               >
                 <Plus className="w-3 h-3" />
-                創建第一個
+                {t('workItemDetail.createFirst')}
               </button>
             </div>
           ) : (
@@ -534,17 +539,17 @@ export const WorkItemDetailPage: React.FC = () => {
                 const getStatusColor = () => {
                   switch (session.status) {
                     case 'processing':
-                      return { bg: 'bg-yellow-500', title: '處理中' };
+                      return { bg: 'bg-yellow-500', title: t('sessionStatus.processing') };
                     case 'completed':
-                      return { bg: 'bg-green-500', title: '已完成' };
+                      return { bg: 'bg-green-500', title: t('common.completed') };
                     case 'error':
-                      return { bg: 'bg-red-500', title: '發生錯誤' };
+                      return { bg: 'bg-red-500', title: t('session.hasError') };
                     case 'interrupted':
-                      return { bg: 'bg-orange-500', title: '已中斷' };
+                      return { bg: 'bg-orange-500', title: t('notify.interrupted') };
                     case 'idle':
-                      return { bg: 'bg-blue-500', title: '閒置中' };
+                      return { bg: 'bg-blue-500', title: t('sessionStatus.idle') };
                     default:
-                      return { bg: 'bg-gray-400', title: '未知狀態' };
+                      return { bg: 'bg-gray-400', title: t('sessionStatus.unknown') };
                   }
                 };
                 
@@ -607,7 +612,7 @@ export const WorkItemDetailPage: React.FC = () => {
           onUpdated={() => {
             loadWorkItem();
             setEditDialogOpen(false);
-            toast.success('Work Item 已更新');
+            toast.success(t('workItemDetail.updated'));
           }}
         />
         </div>
@@ -658,7 +663,7 @@ export const WorkItemDetailPage: React.FC = () => {
                     }`}
                   >
                     <FileText className="w-4 h-4" />
-                    開發日誌
+                    {t('workItemDetail.devLog')}
                   </button>
                   <button
                     onClick={() => setRightPanelView('session')}
@@ -669,7 +674,7 @@ export const WorkItemDetailPage: React.FC = () => {
                     }`}
                   >
                     <MessageSquare className="w-4 h-4" />
-                    Session 詳情
+                    {t('workItemDetail.sessionDetails')}
                   </button>
                 </div>
               )}
@@ -684,14 +689,14 @@ export const WorkItemDetailPage: React.FC = () => {
                 // dev.md 內容
                 <div className="flex flex-col h-full">
                   <div className="flex items-center justify-between p-4 border-b flex-shrink-0">
-                    <h2 className="text-sm font-semibold text-gray-900">開發日誌 (dev.md)</h2>
+                    <h2 className="text-sm font-semibold text-gray-900">{t('workItemDetail.devLogFile')}</h2>
                     <div className="flex items-center gap-1">
                       <button
                         onClick={loadDevMd}
                         className={`p-1.5 text-gray-600 hover:bg-gray-50 rounded transition-colors ${
                           loadingDevMd ? 'opacity-50 cursor-not-allowed' : ''
                         }`}
-                        title="重新載入 dev.md"
+                        title={t('workItemDetail.reloadDevMd')}
                         disabled={loadingDevMd}
                       >
                         <RefreshCw className={`w-4 h-4 ${loadingDevMd ? 'animate-spin' : ''}`} />
@@ -701,7 +706,7 @@ export const WorkItemDetailPage: React.FC = () => {
                         className={`p-1.5 rounded transition-colors relative ${
                           showNavPanel ? 'bg-blue-100 text-blue-600' : 'text-gray-600 hover:bg-gray-50'
                         }`}
-                        title="快速導覽"
+                        title={t('workItemDetail.quickNav')}
                       >
                         <List className="w-4 h-4" />
                         {sessionSections.length > 0 && (
@@ -713,7 +718,7 @@ export const WorkItemDetailPage: React.FC = () => {
                       <button
                         onClick={downloadDevMd}
                         className="p-1.5 text-gray-600 hover:bg-gray-50 rounded transition-colors"
-                        title="下載 dev.md"
+                        title={t('workItemDetail.downloadDevMd')}
                       >
                         <Download className="w-4 h-4" />
                       </button>
@@ -728,10 +733,10 @@ export const WorkItemDetailPage: React.FC = () => {
                           <div className="flex items-center justify-between mb-2">
                             <div className="text-xs font-medium text-gray-700 flex items-center gap-1">
                               <Hash className="w-3 h-3" />
-                              快速跳轉到 Session 段落
+                              {t('workItemDetail.jumpToSection')}
                             </div>
                             <span className="text-[10px] text-gray-500">
-                              共 {sessionSections.length} 個段落
+                              {t('workItemDetail.sectionCount', { count: sessionSections.length })}
                             </span>
                           </div>
                           <div className="space-y-1 max-h-40 overflow-y-auto">
@@ -751,7 +756,7 @@ export const WorkItemDetailPage: React.FC = () => {
                                 {section.isStandard ? (
                                   <span className="text-gray-400 text-[10px]">{section.sessionId}</span>
                                 ) : (
-                                  <span className="text-orange-400 text-[10px]" title="非標準格式">H2</span>
+                                  <span className="text-orange-400 text-[10px]" title={t('workItemDetail.nonStandardFormat')}>H2</span>
                                 )}
                               </button>
                             ))}
@@ -760,9 +765,9 @@ export const WorkItemDetailPage: React.FC = () => {
                       ) : (
                         <div className="text-center py-3">
                           <Hash className="w-6 h-6 text-gray-300 mx-auto mb-2" />
-                          <p className="text-xs text-gray-500">尚無 Session 段落</p>
+                          <p className="text-xs text-gray-500">{t('workItemDetail.noSections')}</p>
                           <p className="text-[10px] text-gray-400 mt-1">
-                            Claude Code 執行後會自動建立段落
+                            {t('workItemDetail.sectionsHint')}
                           </p>
                         </div>
                       )}
@@ -781,7 +786,7 @@ export const WorkItemDetailPage: React.FC = () => {
                     ) : (
                       <div className="text-center text-gray-500 text-sm">
                         <FileText className="w-12 h-12 mx-auto mb-2 text-gray-300" />
-                        <p>dev.md 尚未建立</p>
+                        <p>{t('workItemDetail.devMdMissing')}</p>
                       </div>
                     )}
                   </div>

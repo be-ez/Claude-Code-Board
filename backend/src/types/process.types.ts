@@ -32,7 +32,7 @@ export interface ProcessMessage {
 // Claude 特定的訊息類型
 export interface ClaudeStreamMessage {
   sessionId: string;
-  type: 'assistant' | 'user' | 'system' | 'tool_use' | 'thinking' | 'error' | 'result';
+  type: 'assistant' | 'user' | 'system' | 'tool_use' | 'thinking' | 'output' | 'error' | 'result';
   content: string;
   timestamp: Date;
   metadata?: {

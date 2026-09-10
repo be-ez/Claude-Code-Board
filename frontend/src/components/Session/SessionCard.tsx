@@ -14,6 +14,7 @@ import { Session, SessionStatus } from '../../types/session.types';
 import { formatRelativeTime, truncateText, cn } from '../../utils';
 import { Tooltip } from '../Common/Tooltip';
 import { useDeviceType } from '../../hooks/useMediaQuery';
+import { useTranslation } from 'react-i18next';
 
 interface SessionCardProps {
   session: Session;
@@ -44,6 +45,7 @@ export const SessionCard: React.FC<SessionCardProps> = ({
   workItemId,
   disableNavigation,
 }) => {
+  const { t } = useTranslation();
   const deviceType = useDeviceType();
   const getActionButtons = () => {
     const buttons = [];
@@ -52,7 +54,7 @@ export const SessionCard: React.FC<SessionCardProps> = ({
       case SessionStatus.IDLE:
         // 閒置狀態只顯示完成按鈕
         buttons.push(
-          <Tooltip key="complete" content="標記為完成">
+          <Tooltip key="complete" content={t('session.markComplete')}>
             <button
               onClick={onComplete}
               className="p-1.5 text-gray-600 hover:text-success-600 hover:bg-success-50 rounded-lg transition-all hover:shadow-soft-sm"
@@ -65,7 +67,7 @@ export const SessionCard: React.FC<SessionCardProps> = ({
 
       case SessionStatus.INTERRUPTED:
         buttons.push(
-          <Tooltip key="resume" content="恢復 Session">
+          <Tooltip key="resume" content={t('session.resume')}>
             <button
               onClick={onResume}
               className="p-1.5 text-gray-600 hover:text-primary-600 hover:bg-primary-50 rounded-lg transition-all hover:shadow-soft-sm"
@@ -75,7 +77,7 @@ export const SessionCard: React.FC<SessionCardProps> = ({
           </Tooltip>
         );
         buttons.push(
-          <Tooltip key="complete" content="標記為完成">
+          <Tooltip key="complete" content={t('session.markComplete')}>
             <button
               onClick={onComplete}
               className="p-1.5 text-gray-600 hover:text-success-600 hover:bg-success-50 rounded-lg transition-all hover:shadow-soft-sm"
@@ -95,7 +97,7 @@ export const SessionCard: React.FC<SessionCardProps> = ({
       case SessionStatus.PROCESSING:
         // 正在處理中的 Session 可以中斷
         buttons.push(
-          <Tooltip key="interrupt" content="中斷執行">
+          <Tooltip key="interrupt" content={t('session.interrupt')}>
             <button
               onClick={onInterrupt}
               className="p-1.5 text-gray-600 hover:text-warning-600 hover:bg-warning-50 rounded-lg transition-all hover:shadow-soft-sm"
@@ -109,7 +111,7 @@ export const SessionCard: React.FC<SessionCardProps> = ({
 
     // 所有狀態都可以刪除
     buttons.push(
-      <Tooltip key="delete" content="刪除 Session">
+      <Tooltip key="delete" content={t('session.delete')}>
         <button
           onClick={onDelete}
           className="p-1.5 text-gray-600 hover:text-danger-600 hover:bg-danger-50 rounded-lg transition-all hover:shadow-soft-sm"
@@ -162,18 +164,18 @@ export const SessionCard: React.FC<SessionCardProps> = ({
           {/* 狀態指示器 */}
           <div className="flex items-center gap-1 flex-shrink-0">
             {session.status === SessionStatus.ERROR && (
-              <Tooltip content="發生錯誤">
+              <Tooltip content={t('session.hasError')}>
                 <AlertTriangle className="w-3.5 h-3.5 text-red-500" />
               </Tooltip>
             )}
             {session.status === SessionStatus.PROCESSING && (
-              <Tooltip content="正在處理中">
+              <Tooltip content={t('session.processingNow')}>
                 <div className="w-2.5 h-2.5 bg-yellow-500 rounded-full animate-pulse"></div>
               </Tooltip>
             )}
             {/* Work Item 標籤 */}
             {session.work_item_id && (
-              <Tooltip content={`關聯到 Work Item`}>
+              <Tooltip content={t('session.linkedToWorkItem')}>
                 <span
                   className="inline-flex items-center gap-0.5 px-1.5 py-0.5 text-[10px] rounded font-medium"
                   style={{ 
@@ -189,7 +191,7 @@ export const SessionCard: React.FC<SessionCardProps> = ({
             )}
             {/* 工作流程階段標籤 */}
             {session.workflow_stage && (
-              <Tooltip content={`工作流程階段: ${session.workflow_stage.name}`}>
+              <Tooltip content={t('session.workflowStageLabel', { name: session.workflow_stage.name })}>
                 <span
                   className="inline-flex items-center gap-0.5 px-1.5 py-0.5 text-[10px] rounded font-medium"
                   style={{ 
@@ -264,7 +266,7 @@ export const SessionCard: React.FC<SessionCardProps> = ({
           <div className="flex items-center gap-3">
             {/* 訊息數 */}
             {session.messageCount !== undefined && (
-              <Tooltip content={`${session.messageCount} 則訊息`} side="left">
+              <Tooltip content={t('session.messageCount', { count: session.messageCount })} side="left">
                 <div className="flex items-center gap-1">
                   <MessageSquare className="w-3 h-3" />
                   <span>{session.messageCount}</span>

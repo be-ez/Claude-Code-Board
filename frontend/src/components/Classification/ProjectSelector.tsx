@@ -3,6 +3,7 @@ import { projectApi } from '../../services/api';
 import { Project } from '../../types/classification.types';
 import { MultiSelect } from '../Common/MultiSelect';
 import toast from 'react-hot-toast';
+import { useTranslation } from 'react-i18next';
 
 interface ProjectSelectorProps {
   sessionId: string;
@@ -17,6 +18,7 @@ export const ProjectSelector: React.FC<ProjectSelectorProps> = ({
   onProjectsChange,
   className,
 }) => {
+  const { t } = useTranslation();
   const [projects, setProjects] = useState<Project[]>([]);
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -33,7 +35,7 @@ export const ProjectSelector: React.FC<ProjectSelectorProps> = ({
       setProjects(allProjects);
     } catch (error) {
       console.error('Failed to load projects:', error);
-      toast.error('載入專案失敗');
+      toast.error(t('project.loadFailed'));
     } finally {
       setLoading(false);
     }
@@ -45,10 +47,10 @@ export const ProjectSelector: React.FC<ProjectSelectorProps> = ({
       setSaving(true);
       await projectApi.updateSessionProjects(sessionId, newProjectIds);
       onProjectsChange(newProjectIds);
-      toast.success('專案已更新');
+      toast.success(t('project.updated'));
     } catch (error) {
       console.error('Failed to update projects:', error);
-      toast.error('更新專案失敗');
+      toast.error(t('project.updateFailed'));
     } finally {
       setSaving(false);
     }
@@ -70,10 +72,10 @@ export const ProjectSelector: React.FC<ProjectSelectorProps> = ({
       const newProjectIds = [...selectedProjects, newProject.project_id];
       await handleProjectsChange(newProjectIds);
       
-      toast.success('專案已建立');
+      toast.success(t('project.created'));
     } catch (error) {
       console.error('Failed to create project:', error);
-      toast.error('建立專案失敗');
+      toast.error(t('project.createFailed'));
       throw error;
     }
   };
@@ -89,17 +91,17 @@ export const ProjectSelector: React.FC<ProjectSelectorProps> = ({
   return (
     <div className={className}>
       <label className="block text-sm font-medium text-gray-700 mb-1">
-        專案
+        {t('project.label')}
       </label>
       <MultiSelect
         options={options}
         value={selectedProjects}
         onChange={handleProjectsChange}
-        placeholder="選擇專案..."
+        placeholder={t('project.selectPlaceholder')}
         disabled={saving}
         loading={loading}
         onCreateNew={handleCreateProject}
-        createNewPlaceholder="建立新專案"
+        createNewPlaceholder={t('project.createNew')}
       />
     </div>
   );

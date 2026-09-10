@@ -1,6 +1,7 @@
 import { Request, Response, NextFunction } from 'express';
 import jwt from 'jsonwebtoken';
 import { getEnvConfig } from '../config/env.config';
+import { reqT } from '../i18n';
 
 // 擴展 Request 介面以包含 user 屬性
 declare global {
@@ -19,7 +20,7 @@ export const authMiddleware = (req: Request, res: Response, next: NextFunction) 
     if (!token) {
       return res.status(401).json({
         success: false,
-        message: '未提供認證 token'
+        message: reqT(req)('auth.noToken')
       });
     }
 
@@ -35,13 +36,13 @@ export const authMiddleware = (req: Request, res: Response, next: NextFunction) 
     if (error instanceof jwt.TokenExpiredError) {
       return res.status(401).json({
         success: false,
-        message: 'Token 已過期，請重新登入'
+        message: reqT(req)('auth.tokenExpired')
       });
     }
     
     return res.status(401).json({
       success: false,
-      message: 'Token 無效'
+      message: reqT(req)('auth.tokenInvalid')
     });
   }
 };

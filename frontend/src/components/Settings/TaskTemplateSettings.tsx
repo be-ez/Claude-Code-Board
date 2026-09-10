@@ -3,8 +3,10 @@ import { Plus, Trash2, Edit2, MessageSquare } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { useTaskTemplates } from '../../hooks/useTaskTemplates';
 import { TaskTemplate } from '../../types/taskTemplate.types';
+import { useTranslation } from 'react-i18next';
 
 export const TaskTemplateSettings: React.FC = () => {
+  const { t } = useTranslation();
   const {
     templates,
     createTemplate,
@@ -31,7 +33,7 @@ export const TaskTemplateSettings: React.FC = () => {
 
   const handleSaveNewTemplate = async () => {
     if (!newTemplateData.label.trim() || !newTemplateData.template.trim()) {
-      toast.error('標籤和模板內容不能為空');
+      toast.error(t('taskTemplate.labelContentRequired'));
       return;
     }
 
@@ -54,7 +56,7 @@ export const TaskTemplateSettings: React.FC = () => {
   const deleteTemplateHandler = async (id: string) => {
     const template = templates.find(t => t.id === id);
     if (template?.is_default) {
-      toast.error('無法刪除預設模板');
+      toast.error(t('taskTemplate.cannotDeleteDefault'));
       return;
     }
 
@@ -76,7 +78,7 @@ export const TaskTemplateSettings: React.FC = () => {
   };
 
   const handleResetToDefault = async () => {
-    if (window.confirm('確定要重置為預設模板嗎？這將刪除所有自訂模板。')) {
+    if (window.confirm(t('taskTemplate.confirmReset'))) {
       const success = await resetToDefault();
       if (success) {
         setEditingTemplate(null);
@@ -87,13 +89,13 @@ export const TaskTemplateSettings: React.FC = () => {
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
-        <h3 className="text-lg font-medium text-gray-900">任務模板</h3>
+        <h3 className="text-lg font-medium text-gray-900">{t('settings.taskTemplates')}</h3>
         <div className="flex space-x-2">
           <button
             onClick={handleResetToDefault}
             className="px-3 py-1.5 text-sm text-gray-600 hover:text-gray-800 hover:bg-gray-100 rounded-lg transition-colors"
           >
-            重置預設
+            {t('settings.resetDefaults')}
           </button>
           <button
             onClick={addNewTemplate}
@@ -101,7 +103,7 @@ export const TaskTemplateSettings: React.FC = () => {
             className="flex items-center space-x-1 px-3 py-1.5 text-sm bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
           >
             <Plus className="w-4 h-4" />
-            <span>新增</span>
+            <span>{t('common.add')}</span>
           </button>
         </div>
       </div>
@@ -113,30 +115,30 @@ export const TaskTemplateSettings: React.FC = () => {
             <div className="space-y-3">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  標籤 *
+                  {t('taskTemplate.labelField')}
                 </label>
                 <input
                   type="text"
                   value={newTemplateData.label}
                   onChange={(e) => setNewTemplateData(prev => ({ ...prev, label: e.target.value }))}
                   className="w-full px-3 py-2 text-sm sm:text-base border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"
-                  placeholder="例如：繼續工作"
+                  placeholder={t('taskTemplate.labelPlaceholder')}
                   autoFocus
                 />
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  模板內容 *
+                  {t('taskTemplate.contentField')}
                 </label>
                 <textarea
                   value={newTemplateData.template}
                   onChange={(e) => setNewTemplateData(prev => ({ ...prev, template: e.target.value }))}
                   className="w-full px-3 py-2 text-sm sm:text-base border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 resize-none"
-                  placeholder="請描述任務模板的內容..."
+                  placeholder={t('taskTemplate.contentPlaceholder')}
                   rows={4}
                 />
                 <div className="text-xs text-gray-500 mt-1">
-                  {newTemplateData.template.length} 字元
+                  {t('common.charCount', { count: newTemplateData.template.length })}
                 </div>
               </div>
               <div className="flex justify-end space-x-2">
@@ -144,13 +146,13 @@ export const TaskTemplateSettings: React.FC = () => {
                   onClick={handleCancelNewTemplate}
                   className="px-3 py-1.5 text-sm text-gray-600 hover:text-gray-800 transition-colors"
                 >
-                  取消
+                  {t('common.cancel')}
                 </button>
                 <button
                   onClick={handleSaveNewTemplate}
                   className="px-3 py-1.5 text-sm bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
                 >
-                  新增
+                  {t('common.add')}
                 </button>
               </div>
             </div>
@@ -176,12 +178,12 @@ export const TaskTemplateSettings: React.FC = () => {
       {templates.length === 0 && !isAddingNew && (
         <div className="text-center py-8 text-gray-500">
           <MessageSquare className="w-12 h-12 mx-auto mb-2 opacity-50" />
-          <p>尚無任務模板</p>
+          <p>{t('taskTemplate.empty')}</p>
           <button
             onClick={addNewTemplate}
             className="mt-2 text-blue-600 hover:text-blue-700"
           >
-            新增第一個模板
+            {t('taskTemplate.addFirst')}
           </button>
         </div>
       )}
@@ -205,6 +207,7 @@ const TemplateEditor: React.FC<TemplateEditorProps> = ({
   onUpdate,
   onDelete,
 }) => {
+  const { t } = useTranslation();
   const [editData, setEditData] = useState<TaskTemplate>(template);
 
   React.useEffect(() => {
@@ -213,7 +216,7 @@ const TemplateEditor: React.FC<TemplateEditorProps> = ({
 
   const handleSave = () => {
     if (!editData.label.trim() || !editData.template.trim()) {
-      toast.error('標籤和模板內容不能為空');
+      toast.error(t('taskTemplate.labelContentRequired'));
       return;
     }
     onUpdate(editData);
@@ -230,29 +233,29 @@ const TemplateEditor: React.FC<TemplateEditorProps> = ({
         <div className="space-y-3">
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
-              標籤 *
+              {t('taskTemplate.labelField')}
             </label>
             <input
               type="text"
               value={editData.label}
               onChange={(e) => setEditData(prev => ({ ...prev, label: e.target.value }))}
               className="w-full px-3 py-2 text-sm sm:text-base border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-              placeholder="標籤"
+              placeholder={t('tag.label')}
             />
           </div>
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
-              模板內容 *
+              {t('taskTemplate.contentField')}
             </label>
             <textarea
               value={editData.template}
               onChange={(e) => setEditData(prev => ({ ...prev, template: e.target.value }))}
               className="w-full px-3 py-2 text-sm sm:text-base border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 resize-none"
-              placeholder="模板內容"
+              placeholder={t('taskTemplate.content')}
               rows={4}
             />
             <div className="text-xs text-gray-500 mt-1">
-              {editData.template.length} 字元
+              {t('common.charCount', { count: editData.template.length })}
             </div>
           </div>
           <div className="flex justify-end space-x-2">
@@ -260,13 +263,13 @@ const TemplateEditor: React.FC<TemplateEditorProps> = ({
               onClick={handleCancel}
               className="px-3 py-1.5 text-sm text-gray-600 hover:text-gray-800 transition-colors"
             >
-              取消
+              {t('common.cancel')}
             </button>
             <button
               onClick={handleSave}
               className="px-3 py-1.5 text-sm bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
             >
-              儲存
+              {t('common.save')}
             </button>
           </div>
         </div>
@@ -283,7 +286,7 @@ const TemplateEditor: React.FC<TemplateEditorProps> = ({
             {template.label}
             {template.is_default && (
               <span className="text-xs bg-blue-100 text-blue-600 px-2 py-0.5 rounded-full">
-                預設
+                {t('common.default')}
               </span>
             )}
           </div>
@@ -296,7 +299,7 @@ const TemplateEditor: React.FC<TemplateEditorProps> = ({
         <button
           onClick={() => onEdit(template)}
           className="p-1.5 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
-          title="編輯"
+          title={t('common.edit')}
         >
           <Edit2 className="w-4 h-4" />
         </button>
@@ -304,7 +307,7 @@ const TemplateEditor: React.FC<TemplateEditorProps> = ({
           <button
             onClick={() => onDelete(template.id)}
             className="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
-            title="刪除"
+            title={t('common.delete')}
           >
             <Trash2 className="w-4 h-4" />
           </button>

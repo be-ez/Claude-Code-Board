@@ -5,8 +5,10 @@ import toast from 'react-hot-toast';
 import axiosInstance from '../../utils/axiosInstance';
 import { getErrorMessage } from '../../utils/errorHandler';
 import { useAuth } from '../../contexts/AuthContext';
+import { useTranslation } from 'react-i18next';
 
 export const LoginPage: React.FC = () => {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const { checkAuth } = useAuth();
   const [username, setUsername] = useState('');
@@ -34,15 +36,15 @@ export const LoginPage: React.FC = () => {
   // 驗證使用者名稱
   const validateUsername = useCallback((value: string) => {
     if (!value) {
-      setUsernameError('請輸入帳號');
+      setUsernameError(t('auth.usernameRequired'));
       return false;
     }
     if (value.length < 3) {
-      setUsernameError('帳號至少需要 3 個字元');
+      setUsernameError(t('auth.usernameTooShort'));
       return false;
     }
     if (value.length > 20) {
-      setUsernameError('帳號不能超過 20 個字元');
+      setUsernameError(t('auth.usernameTooLong'));
       return false;
     }
     setUsernameError('');
@@ -52,7 +54,7 @@ export const LoginPage: React.FC = () => {
   // 驗證密碼
   const validatePassword = useCallback((value: string) => {
     if (!value) {
-      setPasswordError('請輸入密碼');
+      setPasswordError(t('auth.passwordRequired'));
       return false;
     }
     setPasswordError('');
@@ -112,11 +114,11 @@ export const LoginPage: React.FC = () => {
         // 通知 AuthContext 更新認證狀態
         await checkAuth();
         
-        toast.success('登入成功！');
+        toast.success(t('auth.loginSuccess'));
         navigate('/sessions');
       }
     } catch (error) {
-      const message = getErrorMessage(error, '登入失敗，請稍後再試');
+      const message = getErrorMessage(error, t('auth.loginFailed'));
       setError(message);
       toast.error(message);
     } finally {
@@ -166,7 +168,7 @@ export const LoginPage: React.FC = () => {
               Claude Code Board
             </h2>
             <p className="mt-3 text-center text-sm text-gray-700">
-              請登入以管理您的 Sessions
+              {t('auth.subtitle')}
             </p>
           </div>
           
@@ -179,7 +181,7 @@ export const LoginPage: React.FC = () => {
             <div className="space-y-4">
               <div>
                 <label htmlFor="username" className="block text-sm font-medium text-gray-700 mb-2">
-                  帳號
+                  {t('auth.username')}
                 </label>
                 <div className="relative group">
                   <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none z-10">
@@ -198,10 +200,10 @@ export const LoginPage: React.FC = () => {
                     className={`block w-full pl-12 pr-4 py-3 border ${
                       usernameError ? 'border-red-300 bg-red-50/30' : 'border-gray-200'
                     } rounded-xl text-gray-900 placeholder-gray-500 bg-white/50 backdrop-blur-sm focus:outline-none focus:ring-4 focus:ring-blue-500/20 focus:border-blue-500 transition-all duration-200 hover:bg-white/70 focus:bg-white/80`}
-                    placeholder="輸入您的帳號"
+                    placeholder={t('auth.usernamePlaceholder')}
                     aria-invalid={!!usernameError}
                     aria-describedby={usernameError ? "username-error" : error ? "login-error" : undefined}
-                    aria-label="帳號"
+                    aria-label={t('auth.username')}
                   />
                 </div>
                 {usernameError && (
@@ -214,7 +216,7 @@ export const LoginPage: React.FC = () => {
               
               <div>
                 <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-2">
-                  密碼
+                  {t('auth.password')}
                 </label>
                 <div className="relative group">
                   <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none z-10">
@@ -232,16 +234,16 @@ export const LoginPage: React.FC = () => {
                     className={`block w-full pl-12 pr-12 py-3 border ${
                       passwordError ? 'border-red-300 bg-red-50/30' : 'border-gray-200'
                     } rounded-xl text-gray-900 placeholder-gray-500 bg-white/50 backdrop-blur-sm focus:outline-none focus:ring-4 focus:ring-blue-500/20 focus:border-blue-500 transition-all duration-200 hover:bg-white/70 focus:bg-white/80`}
-                    placeholder="輸入您的密碼"
+                    placeholder={t('auth.passwordPlaceholder')}
                     aria-invalid={!!passwordError}
                     aria-describedby={passwordError ? "password-error" : error ? "login-error" : undefined}
-                    aria-label="密碼"
+                    aria-label={t('auth.password')}
                   />
                   <button
                     type="button"
                     onClick={togglePasswordVisibility}
                     className="absolute inset-y-0 right-0 pr-4 flex items-center z-10 text-gray-400 hover:text-blue-500 transition-colors duration-200 focus:outline-none focus:ring-4 focus:ring-blue-500/20 rounded-lg h-[44px] w-[44px] -mr-3 justify-end"
-                    aria-label={showPassword ? "隱藏密碼" : "顯示密碼"}
+                    aria-label={showPassword ? t('auth.hidePassword') : t('auth.showPassword')}
                   >
                     {showPassword ? (
                       <EyeOff className="h-5 w-5" />
@@ -269,12 +271,12 @@ export const LoginPage: React.FC = () => {
                     className="h-4 w-4 text-blue-600 focus:ring-4 focus:ring-blue-500/20 border-gray-300 rounded cursor-pointer"
                   />
                   <label htmlFor="remember-me" className="ml-2 block text-sm text-gray-700 cursor-pointer select-none">
-                    記住我
+                    {t('auth.rememberMe')}
                   </label>
                 </div>
                 
                 <a href="#" className="text-sm text-blue-600 hover:text-blue-800 hover:underline focus:outline-none focus:ring-4 focus:ring-blue-500/20 rounded px-2 py-1 -mx-2 -my-1">
-                  忘記密碼？
+                  {t('auth.forgotPassword')}
                 </a>
               </div>
             </div>
@@ -306,7 +308,7 @@ export const LoginPage: React.FC = () => {
                     ? 'bg-gray-400 cursor-not-allowed scale-95' 
                     : 'bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 hover:scale-[1.02] active:scale-[0.98] shadow-lg hover:shadow-xl focus:outline-none focus:ring-4 focus:ring-blue-500/20'
                 }`}
-                aria-label={loading ? "登入中，請稍候" : "登入帳號"}
+                aria-label={loading ? t('auth.signingInWait') : t('auth.signIn')}
               >
                 {loading ? (
                   <span className="flex items-center">
@@ -314,11 +316,11 @@ export const LoginPage: React.FC = () => {
                       <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                       <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                     </svg>
-                    登入中...
+                    {t('auth.signingIn')}
                   </span>
                 ) : (
                   <span className="flex items-center">
-                    登入
+                    {t('auth.login')}
                     <ArrowRight className="ml-2 -mr-1 h-4 w-4 transition-transform duration-300 group-hover:translate-x-1" />
                   </span>
                 )}

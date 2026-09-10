@@ -21,21 +21,32 @@ export const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({ content, cla
           // 自訂程式碼區塊
           code({ node, className, children, ...props }: any) {
             const match = /language-(\w+)/.exec(className || '');
-            const inline = !match;
-            return !inline && match ? (
-            <div className="relative group">
-              <div className="absolute top-2 right-2 text-xs text-gray-400 uppercase tracking-wide opacity-0 group-hover:opacity-100 transition-opacity">
-                {match[1]}
-              </div>
-              <code className={className} {...props}>
+            // A fenced block without a language has no `language-*` class, so a
+            // class check alone mistakes it for inline code and gives a whole
+            // code block the tiny inline pill styling. Multi-line content is a
+            // block regardless of whether a language was declared.
+            const isBlock = Boolean(match) || String(children).includes('\n');
+
+            if (isBlock) {
+              return (
+                <div className="relative group">
+                  {match && (
+                    <div className="absolute top-2 right-2 text-xs text-gray-400 uppercase tracking-wide opacity-0 group-hover:opacity-100 transition-opacity">
+                      {match[1]}
+                    </div>
+                  )}
+                  <code className={cn('block', className)} {...props}>
+                    {children}
+                  </code>
+                </div>
+              );
+            }
+
+            return (
+              <code className={cn('markdown-inline-code', className)} {...props}>
                 {children}
               </code>
-            </div>
-          ) : (
-            <code className={cn('bg-gray-100 text-red-600 px-1 py-0.5 rounded text-sm', className)} {...props}>
-              {children}
-            </code>
-          );
+            );
         },
         // 自訂連結
         a({ node, children, ...props }: any) {

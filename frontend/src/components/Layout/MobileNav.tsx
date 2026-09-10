@@ -8,12 +8,14 @@ import {
 import { useSessions } from '../../hooks/useSessions';
 import { cn } from '../../utils';
 import { SettingsModal } from '../Settings/SettingsModal';
+import { useTranslation } from 'react-i18next';
 
 interface MobileNavProps {
   onCreateSession?: () => void;
 }
 
 export const MobileNav: React.FC<MobileNavProps> = ({ onCreateSession }) => {
+  const { t } = useTranslation();
   const location = useLocation();
   const { sessionsByStatus } = useSessions();
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
@@ -70,7 +72,7 @@ export const MobileNav: React.FC<MobileNavProps> = ({ onCreateSession }) => {
               className="flex flex-col items-center justify-center p-2 rounded-lg text-gray-600 hover:text-gray-900 transition-colors"
             >
               <Settings className="w-6 h-6" />
-              <span className="text-xs mt-1">設定</span>
+              <span className="text-xs mt-1">{t('nav.settings')}</span>
             </button>
           </div>
         </div>

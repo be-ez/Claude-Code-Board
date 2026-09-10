@@ -161,7 +161,7 @@ class WebSocketService {
 
     // 處理通用 message 事件
     this.socket.on('message', (data) => {
-      console.log('=== WebSocket 接收 message 事件 ===', data);
+      console.log('=== WebSocket received message event ===', data);
       
       // 檢查資料完整性
       if (!data || typeof data !== 'object') {
@@ -177,7 +177,7 @@ class WebSocketService {
         metadata: data.metadata
       };
       
-      console.log('處理後的 message 資料:', messageData);
+      console.log('processed message data:', messageData);
       
       // 統一觸發 message 事件，不再根據 type 分發
       this.notifyListeners('message', messageData);
@@ -253,7 +253,7 @@ class WebSocketService {
 
     // output 事件可能需要單獨處理，因為它可能不會通過 message 事件發送
     this.socket.on('output', (data) => {
-      console.log('=== WebSocket 接收 output 事件 ===', data);
+      console.log('=== WebSocket received output event ===', data);
       
       if (!data || typeof data !== 'object') {
         console.warn('Invalid output data received:', data);
@@ -268,7 +268,7 @@ class WebSocketService {
         metadata: data.metadata
       };
       
-      console.log('處理後的 output 資料:', messageData);
+      console.log('processed output data:', messageData);
       // 統一觸發 message 事件
       this.notifyListeners('message', messageData);
     });
@@ -318,7 +318,7 @@ class WebSocketService {
     */
 
     this.socket.on('status_update', (data) => {
-      console.log('=== WebSocket 接收 status_update 事件 ===', data);
+      console.log('=== WebSocket received status_update event ===', data);
       this.notifyListeners('status_update', data);
     });
 
@@ -327,7 +327,7 @@ class WebSocketService {
     });
 
     this.socket.on('session_updated', (data) => {
-      console.log('=== WebSocket 接收 session_updated 事件 ===', data);
+      console.log('=== WebSocket received session_updated event ===', data);
       this.notifyListeners('session_updated', data);
     });
 
@@ -345,7 +345,7 @@ class WebSocketService {
 
     // 處理錯誤事件
     this.socket.on('error', (data) => {
-      console.log('=== WebSocket 接收 error 事件 ===', data);
+      console.log('=== WebSocket received error event ===', data);
       
       if (!data || typeof data !== 'object') {
         console.warn('Invalid error data received:', data);
@@ -360,7 +360,7 @@ class WebSocketService {
         timestamp: safeTimestamp(data.timestamp)
       };
       
-      console.log('處理後的 error 資料:', errorData);
+      console.log('processed error data:', errorData);
       this.notifyListeners('error', errorData);
     });
   }

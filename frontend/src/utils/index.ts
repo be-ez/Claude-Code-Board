@@ -1,6 +1,7 @@
 import { clsx, type ClassValue } from 'clsx';
 import { twMerge } from 'tailwind-merge';
 import { SessionStatus, ProcessStatus } from '../types/session.types';
+import i18n from '../i18n';
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
@@ -20,7 +21,7 @@ export function formatDateTime(date: Date | string | number): string {
     // 檢查是否為有效日期
     if (isNaN(validDate.getTime())) {
       console.warn('Invalid date provided to formatDateTime:', date);
-      return '無效時間';
+      return i18n.t('time.invalid');
     }
     
     return new Intl.DateTimeFormat('zh-TW', {
@@ -33,7 +34,7 @@ export function formatDateTime(date: Date | string | number): string {
     }).format(validDate);
   } catch (error) {
     console.warn('Error formatting date:', date, error);
-    return '無效時間';
+    return i18n.t('time.invalid');
   }
 }
 
@@ -51,7 +52,7 @@ export function formatRelativeTime(date: Date | string | number): string {
     // 檢查是否為有效日期
     if (isNaN(validDate.getTime())) {
       console.warn('Invalid date provided to formatRelativeTime:', date);
-      return '無效時間';
+      return i18n.t('time.invalid');
     }
     
     const now = new Date();
@@ -63,19 +64,19 @@ export function formatRelativeTime(date: Date | string | number): string {
     const days = Math.floor(hours / 24);
 
     if (seconds < 60) {
-      return '剛剛';
+      return i18n.t('time.justNow');
     } else if (minutes < 60) {
-      return `${minutes} 分鐘前`;
+      return i18n.t('time.minutesAgo', { count: minutes });
     } else if (hours < 24) {
-      return `${hours} 小時前`;
+      return i18n.t('time.hoursAgo', { count: hours });
     } else if (days < 7) {
-      return `${days} 天前`;
+      return i18n.t('time.daysAgo', { count: days });
     } else {
       return formatDateTime(validDate);
     }
   } catch (error) {
     console.warn('Error formatting relative time:', date, error);
-    return '無效時間';
+    return i18n.t('time.invalid');
   }
 }
 
@@ -104,7 +105,7 @@ export function formatDuration(startTime: Date | string | number, endTime?: Date
     // 檢查是否為有效日期
     if (isNaN(validStartTime.getTime()) || isNaN(validEndTime.getTime())) {
       console.warn('Invalid date provided to formatDuration:', startTime, endTime);
-      return '無效持續時間';
+      return i18n.t('time.invalidDuration');
     }
     
     const diff = validEndTime.getTime() - validStartTime.getTime();
@@ -122,7 +123,7 @@ export function formatDuration(startTime: Date | string | number, endTime?: Date
     }
   } catch (error) {
     console.warn('Error formatting duration:', startTime, endTime, error);
-    return '無效持續時間';
+    return i18n.t('time.invalidDuration');
   }
 }
 
@@ -154,20 +155,20 @@ export function getStatusColor(status: SessionStatus | ProcessStatus): string {
 }
 
 // 獲取 Session 分類
-export type SessionCategory = '正在處理' | '閒置' | '已完成';
+export type SessionCategory = 'processing' | 'idle' | 'completed';
 
 export function getSessionCategory(status: SessionStatus): SessionCategory {
   switch (status) {
     case SessionStatus.PROCESSING:
-      return '正在處理';
+      return 'processing';
     case SessionStatus.IDLE:
-      return '閒置';
+      return 'idle';
     case SessionStatus.COMPLETED:
     case SessionStatus.ERROR:
     case SessionStatus.INTERRUPTED:
-      return '已完成';
+      return 'completed';
     default:
-      return '已完成';
+      return 'completed';
   }
 }
 
@@ -175,33 +176,33 @@ export function getSessionCategory(status: SessionStatus): SessionCategory {
 export function getStatusText(status: SessionStatus | ProcessStatus): string {
   switch (status) {
     case SessionStatus.PROCESSING:
-      return '正在處理';
+      return i18n.t('sessionList.processing');
     case SessionStatus.IDLE:
-      return '閒置';
+      return i18n.t('sessionList.idle');
     case SessionStatus.COMPLETED:
-      return '已完成';
+      return i18n.t('common.completed');
     case SessionStatus.ERROR:
-      return '錯誤';
+      return i18n.t('processStatus.error');
     case SessionStatus.INTERRUPTED:
-      return '已中斷';
+      return i18n.t('notify.interrupted');
     case ProcessStatus.STARTING:
-      return '啟動中';
+      return i18n.t('processStatus.starting');
     case ProcessStatus.RUNNING:
-      return '運行中';
+      return i18n.t('processStatus.running');
     case ProcessStatus.IDLE:
-      return '閒置';
+      return i18n.t('sessionList.idle');
     case ProcessStatus.BUSY:
-      return '忙碌';
+      return i18n.t('processStatus.busy');
     case ProcessStatus.STOPPING:
-      return '停止中';
+      return i18n.t('processStatus.stopping');
     case ProcessStatus.STOPPED:
-      return '已停止';
+      return i18n.t('processStatus.stopped');
     case ProcessStatus.ERROR:
-      return '錯誤';
+      return i18n.t('processStatus.error');
     case ProcessStatus.CRASHED:
-      return '崩潰';
+      return i18n.t('processStatus.crashed');
     default:
-      return '未知';
+      return i18n.t('common.unknown');
   }
 }
 

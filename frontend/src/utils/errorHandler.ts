@@ -1,4 +1,5 @@
 import { AxiosError } from 'axios';
+import i18n from '../i18n';
 
 export interface ApiError {
   message: string;
@@ -12,7 +13,7 @@ export interface ApiError {
  * @param defaultMessage - 預設錯誤訊息
  * @returns 錯誤訊息字串
  */
-export const getErrorMessage = (error: unknown, defaultMessage = '操作失敗，請稍後再試'): string => {
+export const getErrorMessage = (error: unknown, defaultMessage = i18n.t('errors.generic')): string => {
   if (error instanceof AxiosError) {
     // 處理 API 回傳的錯誤
     if (error.response?.data?.message) {
@@ -21,29 +22,29 @@ export const getErrorMessage = (error: unknown, defaultMessage = '操作失敗�
     
     // 處理網路錯誤
     if (error.code === 'ECONNABORTED') {
-      return '請求超時，請檢查網路連線';
+      return i18n.t('errors.timeout');
     }
     
     if (error.code === 'ERR_NETWORK') {
-      return '網路連線失敗，請檢查網路設定';
+      return i18n.t('errors.network');
     }
     
     // 處理 HTTP 狀態碼
     if (error.response?.status) {
       switch (error.response.status) {
         case 400:
-          return '請求參數錯誤';
+          return i18n.t('errors.badRequest');
         case 401:
-          return '認證失敗，請重新登入';
+          return i18n.t('errors.unauthorized');
         case 403:
-          return '您沒有權限執行此操作';
+          return i18n.t('errors.forbidden');
         case 404:
-          return '請求的資源不存在';
+          return i18n.t('errors.notFound');
         case 500:
-          return '伺服器錯誤，請稍後再試';
+          return i18n.t('errors.serverError');
         case 502:
         case 503:
-          return '伺服器暫時無法提供服務';
+          return i18n.t('errors.unavailable');
         default:
           return defaultMessage;
       }

@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { FolderOpen, Settings, FileText, AlertCircle } from 'lucide-react';
+import { Trans, useTranslation } from 'react-i18next';
 
 interface AgentListItem {
   name: string;
@@ -13,6 +14,7 @@ interface ConfigStatus {
 }
 
 const AgentPromptsPage: React.FC = () => {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const [agents, setAgents] = useState<AgentListItem[]>([]);
   const [config, setConfig] = useState<ConfigStatus>({ configured: false, path: null });
@@ -73,7 +75,7 @@ const AgentPromptsPage: React.FC = () => {
     setConfigError('');
     
     if (!newPath.trim()) {
-      setConfigError('請輸入路徑');
+      setConfigError(t('agentPrompts.pathRequired'));
       return;
     }
 
@@ -95,11 +97,11 @@ const AgentPromptsPage: React.FC = () => {
         setShowConfig(false);
         loadAgents();
       } else {
-        setConfigError(data.error || '設定失敗');
+        setConfigError(data.error || t('agentPrompts.configFailed'));
       }
     } catch (error) {
       console.error('Failed to save path:', error);
-      setConfigError('設定失敗');
+      setConfigError(t('agentPrompts.configFailed'));
     }
   };
 
@@ -110,7 +112,7 @@ const AgentPromptsPage: React.FC = () => {
   if (loading) {
     return (
       <div className="flex items-center justify-center h-screen">
-        <div className="text-gray-500">載入中...</div>
+        <div className="text-gray-500">{t('common.loading')}</div>
       </div>
     );
   }
@@ -124,10 +126,10 @@ const AgentPromptsPage: React.FC = () => {
             <div className="p-2 bg-gradient-to-br from-purple-500 to-blue-600 rounded-xl shadow-blue">
               <FileText className="w-6 h-6 text-white" />
             </div>
-            <h1 className="text-3xl font-bold bg-gradient-to-r from-gray-800 to-gray-600 bg-clip-text text-transparent">Agent 提示詞庫</h1>
+            <h1 className="text-3xl font-bold bg-gradient-to-r from-gray-800 to-gray-600 bg-clip-text text-transparent">{t('agentPrompts.title')}</h1>
             {agents.length > 0 && (
               <span className="px-3 py-1 bg-purple-50 text-purple-700 border border-purple-200 rounded-full text-sm font-medium">
-                總計 {agents.length}
+                {t('common.totalCount', { count: agents.length })}
               </span>
             )}
           </div>
@@ -138,7 +140,7 @@ const AgentPromptsPage: React.FC = () => {
               className="flex items-center gap-2 px-4 py-2 text-sm glass-ultra rounded-xl transition-all hover:shadow-soft border border-white/40"
             >
               <Settings className="h-4 w-4" />
-              <span>設定</span>
+              <span>{t('nav.settings')}</span>
             </button>
           </div>
         </div>
@@ -150,9 +152,9 @@ const AgentPromptsPage: React.FC = () => {
               <FolderOpen className="h-5 w-5 text-gray-500" />
               <span className="text-sm text-gray-700">
                 {config.configured ? (
-                  <>當前路徑: <code className="bg-gray-100 px-2 py-1 rounded">{config.path}</code></>
+                  <>{t('agentPrompts.currentPath')} <code className="bg-gray-100 px-2 py-1 rounded">{config.path}</code></>
                 ) : (
-                  '尚未設定 Claude agents 路徑'
+                  t('agentPrompts.pathNotSet')
                 )}
               </span>
             </div>
@@ -160,13 +162,13 @@ const AgentPromptsPage: React.FC = () => {
             <div className="space-y-3">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Claude Agents 路徑
+                  {t('agentPrompts.pathLabel')}
                 </label>
                 <input
                   type="text"
                   value={newPath}
                   onChange={(e) => setNewPath(e.target.value)}
-                  placeholder="例如: C:\Users\User\.claude\agents"
+                  placeholder={t('agentPrompts.pathPlaceholder')}
                   className="w-full px-3 py-2 glass-ultra border border-white/50 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50"
                 />
                 {configError && (
@@ -178,7 +180,7 @@ const AgentPromptsPage: React.FC = () => {
                   onClick={handleSavePath}
                   className="px-4 py-2 btn-primary"
                 >
-                  儲存
+                  {t('common.save')}
                 </button>
                 <button
                   onClick={() => {
@@ -188,7 +190,7 @@ const AgentPromptsPage: React.FC = () => {
                   }}
                   className="px-4 py-2 btn-secondary"
                 >
-                  取消
+                  {t('common.cancel')}
                 </button>
               </div>
             </div>
@@ -222,14 +224,14 @@ const AgentPromptsPage: React.FC = () => {
 
                       {/* 描述區域 */}
                       <div className="flex-1 min-w-0">
-                        <span className="text-sm text-gray-400 italic">點擊查看詳細內容</span>
+                        <span className="text-sm text-gray-400 italic">{t('agentPrompts.clickToView')}</span>
                       </div>
 
                       {/* 狀態指示 */}
                       <div className="flex items-center" style={{ width: '100px' }}>
                         <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-purple-100 text-purple-700">
                           <span>🤖</span>
-                          可用
+                          {t('agentPrompts.available')}
                         </span>
                       </div>
                     </div>
@@ -240,16 +242,19 @@ const AgentPromptsPage: React.FC = () => {
           ) : (
           <div className="glass-card rounded-xl p-8 text-center">
             <AlertCircle className="h-12 w-12 text-gray-400 mx-auto mb-3" />
-            <p className="text-gray-600">目錄中沒有找到 agent 檔案</p>
-            <p className="text-sm text-gray-500 mt-1">請確認路徑設定正確</p>
+            <p className="text-gray-600">{t('agentPrompts.noFiles')}</p>
+            <p className="text-sm text-gray-500 mt-1">{t('agentPrompts.checkPath')}</p>
           </div>
           )
         ) : (
           <div className="glass-ultra rounded-xl p-8 text-center">
             <FolderOpen className="h-12 w-12 text-blue-500 mx-auto mb-3" />
-            <p className="text-gray-700 mb-2">請先設定 Claude agents 路徑</p>
+            <p className="text-gray-700 mb-2">{t('agentPrompts.setPathFirst')}</p>
             <p className="text-sm text-gray-600">
-              通常位於 <code className="bg-white/50 px-2 py-1 rounded">~/.claude/agents</code>
+              <Trans
+                i18nKey="agentPrompts.usuallyLocatedAt"
+                components={{ path: <code className="bg-white/50 px-2 py-1 rounded" /> }}
+              />
             </p>
           </div>
         )}

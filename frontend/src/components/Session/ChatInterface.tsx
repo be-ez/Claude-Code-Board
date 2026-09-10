@@ -1,14 +1,21 @@
 import { AlertCircle, Bot } from "lucide-react";
-import React, { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import toast from "react-hot-toast";
+import {
+  AssistantRuntimeProvider,
+  useExternalStoreRuntime,
+  type AppendMessage,
+  type ThreadMessageLike,
+} from "@assistant-ui/react";
 import { useWebSocket } from "../../hooks/useWebSocket";
 import { sessionApi } from "../../services/api";
 import { WebSocketMessage } from "../../services/websocket";
 import { useMessageStore } from "../../stores/messageStore";
 import { Message, Session } from "../../types/session.types";
-import MessageInput from "./MessageInput";
-import MessageItem from "./MessageItem";
+import { toThreadMessages } from "../../utils/threadMessages";
+import { Thread } from "./Thread";
 import { MessageFilter } from "./MessageFilter";
+import { useTranslation } from 'react-i18next';
 
 interface ChatInterfaceProps {
   sessionId: string;
@@ -19,22 +26,15 @@ interface ChatInterfaceProps {
   onSessionUpdate?: (updates: Partial<Session>) => void;
 }
 
-// 將訊息列表提取為單獨的組件，使用 React.memo 優化
-interface MessageListProps {
-  messages: Message[];
-}
-
-const MessageList = React.memo<MessageListProps>(({ messages }) => {
-  return (
-    <div className="w-full">
-      {messages.map((message) => (
-        <MessageItem key={message.messageId} message={message} isStreaming={message.metadata?.isStreaming} />
-      ))}
-    </div>
-  );
-});
+/** Pull the plain text out of whatever the composer produced. */
+const appendedText = (message: AppendMessage): string =>
+  message.content
+    .map((part) => (part.type === "text" ? part.text : ""))
+    .join("")
+    .trim();
 
 export const ChatInterface: React.FC<ChatInterfaceProps> = ({ sessionId, session, isSessionActive, isProcessing = false, onSessionUpdate }) => {
+  const { t } = useTranslation();
   // 使用 message store - 分別獲取 actions 和 state
   const messages = useMessageStore((state) => state.messages);
   const isLoading = useMessageStore((state) => state.isLoading);
@@ -48,17 +48,21 @@ export const ChatInterface: React.FC<ChatInterfaceProps> = ({ sessionId, session
 
   // 訊息過濾狀態 - 從 localStorage 讀取或使用預設值
   const [hiddenMessageTypes, setHiddenMessageTypes] = useState<Set<Message['type']>>(() => {
+    // 預設隱藏 thinking（工具呼叫現在與輸出成對顯示，預設顯示）
+    const defaults = new Set(['thinking'] as Message['type'][]);
     const saved = localStorage.getItem('messageFilterHiddenTypes');
-    if (saved) {
-      try {
-        const parsed = JSON.parse(saved);
-        return new Set(parsed as Message['type'][]);
-      } catch {
-        // 如果解析失敗，使用預設值
-      }
+    if (!saved) return defaults;
+    try {
+      const parsed = JSON.parse(saved) as Message['type'][];
+      // Anyone still carrying the old default would now see tool cards with no
+      // results, since output used to be part of the tool_use stream. Treat that
+      // exact saved set as "never customised" and move them to the new default.
+      const isLegacyDefault =
+        parsed.length === 2 && parsed.includes('tool_use') && parsed.includes('thinking');
+      return isLegacyDefault ? defaults : new Set(parsed);
+    } catch {
+      return defaults;
     }
-    // 預設隱藏 tool_use 和 thinking
-    return new Set(['tool_use', 'thinking'] as Message['type'][]);
   });
 
   // 當過濾設置改變時，保存到 localStorage
@@ -67,24 +71,17 @@ export const ChatInterface: React.FC<ChatInterfaceProps> = ({ sessionId, session
     localStorage.setItem('messageFilterHiddenTypes', JSON.stringify(Array.from(types)));
   }, []);
 
-  // 將 Map 轉換為排序後的陣列，並應用過濾
-  const { sortedMessages, filteredCount } = React.useMemo(() => {
+  // 過濾後的原始訊息，再組成 assistant-ui 的 thread 格式
+  const { threadMessages, filteredCount } = useMemo(() => {
     const allMessages = Array.from(messages.values());
     const filtered = allMessages.filter((message) => !hiddenMessageTypes.has(message.type));
-    const sorted = filtered.sort((a, b) => {
-      const timeA = a.timestamp instanceof Date ? a.timestamp.getTime() : new Date(a.timestamp).getTime();
-      const timeB = b.timestamp instanceof Date ? b.timestamp.getTime() : new Date(b.timestamp).getTime();
-      return timeA - timeB;
-    });
     return {
-      sortedMessages: sorted,
-      filteredCount: allMessages.length - filtered.length
+      threadMessages: toThreadMessages(filtered),
+      filteredCount: allMessages.length - filtered.length,
     };
   }, [messages, hiddenMessageTypes]);
 
-  const messagesEndRef = useRef<HTMLDivElement>(null);
-  const messagesStartRef = useRef<HTMLDivElement>(null);
-  const scrollContainerRef = useRef<HTMLDivElement>(null);
+  const viewportRef = useRef<HTMLDivElement | null>(null);
   const { addEventListener, removeEventListener, subscribe, unsubscribe } = useWebSocket();
 
   // 1️⃣ 初始載入（頁面載入/重新整理時）
@@ -142,45 +139,19 @@ export const ChatInterface: React.FC<ChatInterfaceProps> = ({ sessionId, session
     };
   }, [sessionId, addEventListener, removeEventListener, subscribe, unsubscribe, addMessage]);
 
-  // 3️⃣ 自動滾動處理
-  const [isInitialScroll, setIsInitialScroll] = useState(true);
-
-  // 初次載入立即滾動（在瀏覽器繪製前）
-  useLayoutEffect(() => {
-    if (sortedMessages.length > 0 && isInitialScroll && !isLoading) {
-      messagesEndRef.current?.scrollIntoView({ behavior: "auto" });
-      setIsInitialScroll(false);
-    }
-  }, [sortedMessages.length, isInitialScroll, isLoading]);
-
-  // 新訊息平滑滾動
+  // 3️⃣ 無限滾動檢測（載入更舊的訊息，並維持捲動位置）
   useEffect(() => {
-    if (sortedMessages.length > 0 && !isInitialScroll) {
-      messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-    }
-  }, [sortedMessages.length, isInitialScroll]); // 只依賴訊息數量變化
-
-  // 當 sessionId 改變時，重置初次滾動狀態
-  useEffect(() => {
-    setIsInitialScroll(true);
-  }, [sessionId]);
-
-  // 4️⃣ 無限滾動檢測
-  useEffect(() => {
-    const container = scrollContainerRef.current;
+    const container = viewportRef.current;
     if (!container) return;
 
     const handleScroll = () => {
-      // 檢查是否滾動到頂部（載入更舊的訊息）
       if (container.scrollTop < 100 && canLoadMore("older") && !isLoadingMore) {
         const previousScrollHeight = container.scrollHeight;
         const previousScrollTop = container.scrollTop;
 
         loadMoreMessages("older").then(() => {
-          // 載入完成後，保持滾動位置
           requestAnimationFrame(() => {
-            const newScrollHeight = container.scrollHeight;
-            const scrollDiff = newScrollHeight - previousScrollHeight;
+            const scrollDiff = container.scrollHeight - previousScrollHeight;
             container.scrollTop = previousScrollTop + scrollDiff;
           });
         });
@@ -216,7 +187,7 @@ export const ChatInterface: React.FC<ChatInterfaceProps> = ({ sessionId, session
 
         // 立即更新 session 的 lastUserMessage 和 messageCount
         if (onSessionUpdate) {
-          console.log("=== ChatInterface 調用 onSessionUpdate ===", {
+          console.log("=== ChatInterface calling onSessionUpdate ===", {
             lastUserMessage: messageContent,
             messageCount: (session?.messageCount || 0) + 1,
           });
@@ -229,145 +200,131 @@ export const ChatInterface: React.FC<ChatInterfaceProps> = ({ sessionId, session
         // 成功後更新狀態
         updateMessageStatus(tempMessage.messageId, "sent");
       } catch (error) {
-        toast.error("發送訊息失敗");
+        toast.error(t('chat.sendFailed'));
         console.error("Error sending message:", error);
         // 標記為失敗
         updateMessageStatus(tempMessage.messageId, "failed");
-        throw error; // 讓 MessageInput 組件能夠處理錯誤
+        throw error;
       }
     },
-    [sessionId, isSessionActive, onSessionUpdate, session?.messageCount, addMessage, updateMessageStatus]
+    [sessionId, isSessionActive, onSessionUpdate, session?.messageCount, addMessage, updateMessageStatus, t]
   );
 
+  // 5️⃣ assistant-ui runtime：我們自己持有狀態，只交給它渲染
+  const runtime = useExternalStoreRuntime<ThreadMessageLike>({
+    messages: threadMessages,
+    convertMessage: (message) => message,
+    isRunning: isProcessing,
+    isDisabled: !isSessionActive,
+    onNew: async (message: AppendMessage) => {
+      const text = appendedText(message);
+      if (text) await handleSendMessage(text);
+    },
+  });
+
   // 渲染
-  if (isLoading && sortedMessages.length === 0) {
+  if (isLoading && threadMessages.length === 0) {
     return (
       <div className="flex items-center justify-center h-64">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-          <p className="text-gray-600">載入對話記錄中...</p>
+          <p className="text-gray-600">{t('chat.loadingHistory')}</p>
         </div>
       </div>
     );
   }
 
-  if (error && sortedMessages.length === 0) {
+  if (error && threadMessages.length === 0) {
     return (
       <div className="flex items-center justify-center h-64">
         <div className="text-center">
           <AlertCircle className="w-12 h-12 text-red-500 mx-auto mb-4" />
-          <p className="text-red-600 mb-4">載入訊息失敗</p>
+          <p className="text-red-600 mb-4">{t('chat.loadMessagesFailed')}</p>
           <button onClick={() => initializeFromAPI(sessionId)} className="btn-primary">
-            重試
+            {t('common.retry')}
           </button>
         </div>
       </div>
     );
   }
 
-  return (
-    <div className="flex flex-col h-full">
-      {/* 頂部工具列 */}
-      <div className="glass border-b border-glass-border px-4 py-2">
-        <div className="flex items-center justify-between">
-          {!isSessionActive ? (
-            <div className="flex items-center space-x-2 text-gray-600">
-              <AlertCircle className="w-4 h-4" />
-              <span className="text-sm">Session 已停止，無法發送新訊息</span>
-            </div>
-          ) : (
-            <div className="flex-1" /> // 佔位元素
-          )}
-          <MessageFilter 
-            hiddenTypes={hiddenMessageTypes}
-            onFilterChange={handleFilterChange}
-          />
-        </div>
-      </div>
-
-      {/* 訊息列表 */}
-      <div ref={scrollContainerRef} className="flex-1 overflow-y-auto bg-gradient-soft px-3 sm:px-4 md:px-6 lg:px-8 py-4 sm:py-6">
-        <div ref={messagesStartRef} />
-
-        {/* 載入更多指示器 */}
-        {canLoadMore("older") && (
-          <div className="text-center py-4">
-            {isLoadingMore ? (
-              <div className="flex items-center justify-center gap-2">
-                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600"></div>
-                <span className="text-sm text-gray-500">載入更多訊息...</span>
-              </div>
-            ) : (
-              <button onClick={() => loadMoreMessages("older")} className="text-sm text-primary-600 hover:text-primary-700 font-medium hover:underline">
-                載入更早的訊息
-              </button>
-            )}
-          </div>
-        )}
-
-        {sortedMessages.length === 0 && !isLoading ? (
-          <div className="text-center py-16">
-            {filteredCount > 0 ? (
-              <>
-                <div className="bg-gradient-to-br from-warning-400 to-warning-500 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4 shadow-soft-md">
-                  <Bot className="w-8 h-8 text-white" />
-                </div>
-                <h3 className="text-lg font-semibold text-gray-800 mb-2">沒有可顯示的訊息</h3>
-                <p className="text-gray-600">有 {filteredCount} 則訊息被過濾隱藏</p>
-                <p className="text-sm text-gray-500 mt-2">點擊右上角的訊息過濾按鈕調整設定</p>
-              </>
-            ) : (
-              <>
-                <div className="bg-gradient-to-br from-success-400 to-success-500 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4 shadow-soft-md animate-float">
-                  <Bot className="w-8 h-8 text-white" />
-                </div>
-                <h3 className="text-lg font-semibold text-gray-800 mb-2">開始新的對話</h3>
-                <p className="text-gray-600">向 Claude Code 發送訊息開始互動</p>
-              </>
-            )}
+  const header = (
+    <div className="glass border-b border-glass-border px-4 py-2">
+      <div className="flex items-center justify-between">
+        {!isSessionActive ? (
+          <div className="flex items-center space-x-2 text-gray-600">
+            <AlertCircle className="w-4 h-4" />
+            <span className="text-sm">{t('chat.sessionStoppedNotice')}</span>
           </div>
         ) : (
-          <>
-            {/* 過濾提示 */}
-            {filteredCount > 0 && (
-              <div className="flex justify-center mb-2">
-                <div className="inline-flex items-center gap-2 px-3 py-1 bg-warning-50 text-warning-700 text-sm rounded-full border border-warning-200">
-                  <span>已隱藏 {filteredCount} 則訊息</span>
-                </div>
-              </div>
-            )}
-            <MessageList messages={sortedMessages} />
-          </>
+          <div className="flex-1" />
         )}
-
-        {/* 處理中的 loading 動畫 */}
-        {isProcessing && (
-          <div className="w-full">
-            <div className="mb-4 pr-4 sm:pr-4 md:pr-4 lg:pr-4">
-              <div className="card rounded-2xl p-4 shadow-soft w-full">
-                <div className="flex items-start gap-3">
-                  <div className="w-8 h-8 rounded-full bg-gradient-to-br from-success-400 to-success-500 flex items-center justify-center shadow-soft-sm">
-                    <Bot className="w-4 h-4 text-white" />
-                  </div>
-                  <div>
-                    <div className="font-semibold text-sm text-gray-900 dark:text-gray-100 mb-2">Claude</div>
-                    <div className="flex items-center space-x-1">
-                      <div className="w-2 h-2 bg-green-500 rounded-full animate-bounce" style={{ animationDelay: "0ms" }}></div>
-                      <div className="w-2 h-2 bg-green-500 rounded-full animate-bounce" style={{ animationDelay: "150ms" }}></div>
-                      <div className="w-2 h-2 bg-green-500 rounded-full animate-bounce" style={{ animationDelay: "300ms" }}></div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
-
-        <div ref={messagesEndRef} />
+        <MessageFilter hiddenTypes={hiddenMessageTypes} onFilterChange={handleFilterChange} />
       </div>
-
-      {/* 輸入框 - 使用獨立的 MessageInput 組件 */}
-      <MessageInput onSendMessage={handleSendMessage} disabled={!isSessionActive} placeholder={isSessionActive ? "輸入訊息..." : "Session 已停止"} />
     </div>
+  );
+
+  const beforeMessages = (
+    <>
+      {canLoadMore("older") && (
+        <div className="text-center py-4">
+          {isLoadingMore ? (
+            <div className="flex items-center justify-center gap-2">
+              <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600"></div>
+              <span className="text-sm text-gray-500">{t('chat.loadingMore')}</span>
+            </div>
+          ) : (
+            <button onClick={() => loadMoreMessages("older")} className="text-sm text-primary-600 hover:text-primary-700 font-medium hover:underline">
+              {t('chat.loadEarlier')}
+            </button>
+          )}
+        </div>
+      )}
+
+      {filteredCount > 0 && threadMessages.length > 0 && (
+        <div className="flex justify-center mb-2">
+          <div className="inline-flex items-center gap-2 px-3 py-1 bg-warning-50 text-warning-700 text-sm rounded-full border border-warning-200">
+            <span>{t('chat.hiddenCount', { count: filteredCount })}</span>
+          </div>
+        </div>
+      )}
+    </>
+  );
+
+  const empty = (
+    <div className="text-center py-16">
+      {filteredCount > 0 ? (
+        <>
+          <div className="bg-gradient-to-br from-warning-400 to-warning-500 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4 shadow-soft-md">
+            <Bot className="w-8 h-8 text-white" />
+          </div>
+          <h3 className="text-lg font-semibold text-gray-800 mb-2">{t('chat.noMessages')}</h3>
+          <p className="text-gray-600">{t('chat.filteredHidden', { count: filteredCount })}</p>
+          <p className="text-sm text-gray-500 mt-2">{t('chat.adjustFilterHint')}</p>
+        </>
+      ) : (
+        <>
+          <div className="bg-gradient-to-br from-success-400 to-success-500 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4 shadow-soft-md animate-float">
+            <Bot className="w-8 h-8 text-white" />
+          </div>
+          <h3 className="text-lg font-semibold text-gray-800 mb-2">{t('chat.startConversation')}</h3>
+          <p className="text-gray-600">{t('chat.startHint')}</p>
+        </>
+      )}
+    </div>
+  );
+
+  return (
+    <AssistantRuntimeProvider runtime={runtime}>
+      <Thread
+        isSessionActive={isSessionActive}
+        header={header}
+        beforeMessages={beforeMessages}
+        empty={empty}
+        onViewportRef={(element) => {
+          viewportRef.current = element;
+        }}
+      />
+    </AssistantRuntimeProvider>
   );
 };

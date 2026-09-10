@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { taskTemplateApi } from '../services/api';
 import { TaskTemplate, CreateTaskTemplateRequest, UpdateTaskTemplateRequest, ReorderTaskTemplatesRequest } from '../types/taskTemplate.types';
 import toast from 'react-hot-toast';
+import i18n from '../i18n';
 
 export const useTaskTemplates = () => {
   const [templates, setTemplates] = useState<TaskTemplate[]>([]);
@@ -15,7 +16,7 @@ export const useTaskTemplates = () => {
       setTemplates(data);
     } catch (error) {
       console.error('Failed to load task templates:', error);
-      toast.error('無法載入任務模板');
+      toast.error(i18n.t('taskTemplate.loadFailed'));
       setTemplates([]);
     } finally {
       setIsLoading(false);
@@ -34,11 +35,11 @@ export const useTaskTemplates = () => {
       // 觸發自定義事件
       window.dispatchEvent(new Event('templates-updated'));
 
-      toast.success('已新增任務模板');
+      toast.success(i18n.t('taskTemplate.added'));
       return true;
     } catch (error) {
       console.error('Failed to create task template:', error);
-      toast.error('新增任務模板失敗');
+      toast.error(i18n.t('taskTemplate.addFailed'));
       return false;
     }
   };
@@ -52,11 +53,11 @@ export const useTaskTemplates = () => {
       // 觸發自定義事件
       window.dispatchEvent(new Event('templates-updated'));
 
-      toast.success('已更新任務模板');
+      toast.success(i18n.t('taskTemplate.updated'));
       return true;
     } catch (error) {
       console.error('Failed to update task template:', error);
-      toast.error('更新任務模板失敗');
+      toast.error(i18n.t('taskTemplate.updateFailed'));
       return false;
     }
   };
@@ -70,11 +71,11 @@ export const useTaskTemplates = () => {
       // 觸發自定義事件
       window.dispatchEvent(new Event('templates-updated'));
 
-      toast.success('已刪除任務模板');
+      toast.success(i18n.t('taskTemplate.deleted'));
       return true;
     } catch (error) {
       console.error('Failed to delete task template:', error);
-      toast.error('刪除任務模板失敗');
+      toast.error(i18n.t('taskTemplate.deleteFailed'));
       return false;
     }
   };
@@ -96,7 +97,7 @@ export const useTaskTemplates = () => {
       return true;
     } catch (error) {
       console.error('Failed to reorder task templates:', error);
-      toast.error('重新排序失敗');
+      toast.error(i18n.t('taskTemplate.reorderFailed'));
       return false;
     }
   };
@@ -110,11 +111,11 @@ export const useTaskTemplates = () => {
       // 觸發自定義事件
       window.dispatchEvent(new Event('templates-updated'));
 
-      toast.success('已重置為預設模板');
+      toast.success(i18n.t('taskTemplate.resetDone'));
       return true;
     } catch (error) {
       console.error('Failed to reset templates:', error);
-      toast.error('重置模板失敗');
+      toast.error(i18n.t('taskTemplate.resetFailed'));
       return false;
     }
   };

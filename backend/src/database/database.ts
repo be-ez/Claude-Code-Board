@@ -179,6 +179,16 @@ export class Database {
           } catch (migrationError) {
             console.error('Migration failed:', migrationError);
           }
+
+          // The legacy `role` column is still NOT NULL on databases created
+          // before the role -> type switch (and on brand new ones, since the
+          // CREATE TABLE above still declares it). MessageRepository only
+          // writes `type`, so every insert fails until the column is dropped.
+          try {
+            await this.dropLegacyRoleColumn();
+          } catch (roleError) {
+            console.error('Failed to drop legacy role column:', roleError);
+          }
         });
 
         // Create session_status_history table
@@ -246,7 +256,7 @@ export class Database {
               { id: '2', icon: 'Code', label: 'Example', path: 'C:\\Users\\Example', sort_order: 2 },
               { id: '3', icon: 'Home', label: 'Desktop', path: 'C:\\Users\\User\\Desktop', sort_order: 3 },
               { id: '4', icon: 'Home', label: 'Documents', path: 'C:\\Users\\User\\Documents', sort_order: 4 },
-              { id: '5', icon: 'FolderOpen', label: '當前目錄', path: '.', sort_order: 5 },
+              { id: '5', icon: 'FolderOpen', label: 'Current directory', path: '.', sort_order: 5 },
             ];
             
             for (const path of defaultPaths) {
@@ -463,11 +473,11 @@ export class Database {
           if (count && count.count === 0) {
             // Insert default templates
             const defaultTemplates = [
-              { id: '1', label: '繼續工作', template: '基於前一個對話的上下文，繼續進行相關工作。', sort_order: 1 },
-              { id: '2', label: '程式審查', template: '請審查此專案的程式碼品質、安全性和最佳實踐。請先閱讀 dev.md 和相關專案檔案。', sort_order: 2 },
-              { id: '3', label: '修復錯誤', template: '協助分析和修復專案中的錯誤。請先了解專案架構和現有程式碼。', sort_order: 3 },
-              { id: '4', label: '功能開發', template: '協助開發新功能，請先了解現有架構和設計模式。', sort_order: 4 },
-              { id: '5', label: '撰寫文件', template: '協助撰寫或更新專案文件，請先分析現有程式碼結構。', sort_order: 5 },
+              { id: '1', label: 'Continue working', template: 'Continue the related work, building on the context of the previous conversation.', sort_order: 1 },
+              { id: '2', label: 'Code review', template: 'Review this project for code quality, security and best practices. Start by reading dev.md and the related project files.', sort_order: 2 },
+              { id: '3', label: 'Fix a bug', template: 'Help analyse and fix a bug in this project. Start by understanding the project architecture and the existing code.', sort_order: 3 },
+              { id: '4', label: 'Build a feature', template: 'Help build a new feature. Start by understanding the existing architecture and design patterns.', sort_order: 4 },
+              { id: '5', label: 'Write docs', template: 'Help write or update the project documentation. Start by analysing the existing code structure.', sort_order: 5 },
             ];
 
             for (const t of defaultTemplates) {
@@ -619,4 +629,56 @@ export class Database {
       throw new Error(`Failed to create backup: ${error}`);
     }
   }
+
+  /**
+   * Rebuild `messages` without the legacy `role` column, preserving rows.
+   * `type` supersedes it; keeping a NOT NULL `role` makes every insert fail.
+   * Idempotent: does nothing once the column is gone.
+   */
+  private async dropLegacyRoleColumn(): Promise<void> {
+    const columns = await this.all<{ name: string; notnull: number }>(
+      'PRAGMA table_info(messages)'
+    );
+    const role = columns.find((c) => c.name === 'role');
+    if (!role) return;
+
+    await this.run('PRAGMA foreign_keys = OFF');
+    try {
+      await this.run('BEGIN TRANSACTION');
+      await this.run(`
+        CREATE TABLE messages_new (
+          message_id TEXT PRIMARY KEY,
+          session_id TEXT NOT NULL,
+          type TEXT NOT NULL,
+          content TEXT NOT NULL,
+          compressed BOOLEAN DEFAULT FALSE,
+          original_size INTEGER,
+          compressed_size INTEGER,
+          timestamp DATETIME DEFAULT CURRENT_TIMESTAMP,
+          metadata TEXT,
+          FOREIGN KEY (session_id) REFERENCES sessions(session_id) ON DELETE CASCADE
+        )
+      `);
+      await this.run(`
+        INSERT INTO messages_new (
+          message_id, session_id, type, content, compressed,
+          original_size, compressed_size, timestamp, metadata
+        )
+        SELECT message_id, session_id, COALESCE(type, role, 'assistant'), content, compressed,
+               original_size, compressed_size, timestamp, metadata
+        FROM messages
+      `);
+      await this.run('DROP TABLE messages');
+      await this.run('ALTER TABLE messages_new RENAME TO messages');
+      await this.run('CREATE INDEX IF NOT EXISTS idx_messages_session_id ON messages(session_id)');
+      await this.run('COMMIT');
+      console.log('Dropped legacy messages.role column');
+    } catch (error) {
+      await this.run('ROLLBACK').catch(() => undefined);
+      throw error;
+    } finally {
+      await this.run('PRAGMA foreign_keys = ON');
+    }
+  }
+
 }

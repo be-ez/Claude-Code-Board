@@ -1,4 +1,5 @@
 import axios, { AxiosInstance, InternalAxiosRequestConfig, AxiosResponse, AxiosError } from 'axios';
+import i18n from '../i18n';
 
 // 創建 axios instance
 const axiosInstance: AxiosInstance = axios.create({
@@ -20,7 +21,10 @@ axiosInstance.interceptors.request.use(
     if (token && tokenExpiry && Date.now() < parseInt(tokenExpiry)) {
       config.headers.Authorization = `Bearer ${token}`;
     }
-    
+
+    // Let the backend answer in whatever language the UI is showing.
+    config.headers['Accept-Language'] = i18n.resolvedLanguage ?? 'en';
+
     return config;
   },
   (error: AxiosError) => {

@@ -14,8 +14,10 @@ import {
 import { workflowStageService, WorkflowStage } from '../services/workflowStageService';
 import { agentPromptService, AgentListItem } from '../services/agentPromptService';
 import toast from 'react-hot-toast';
+import { Trans, useTranslation } from 'react-i18next';
 
 export const WorkflowStages: React.FC = () => {
+  const { t } = useTranslation();
   const [stages, setStages] = useState<WorkflowStage[]>([]);
   const [loading, setLoading] = useState(true);
   const [editingStage, setEditingStage] = useState<string | null>(null);
@@ -53,7 +55,7 @@ export const WorkflowStages: React.FC = () => {
       const data = await workflowStageService.getAllStages();
       setStages(data);
     } catch (error) {
-      toast.error('載入工作流程階段失敗');
+      toast.error(t('workflowStage.loadFailed'));
       console.error('Failed to load workflow stages:', error);
     } finally {
       setLoading(false);
@@ -93,13 +95,13 @@ export const WorkflowStages: React.FC = () => {
     try {
       const exists = await workflowStageService.checkAgentExists(agentName);
       if (!exists) {
-        setAgentError(`Agent "${agentName}" 檔案不存在！請檢查 .claude 路徑設定或選擇其他 Agent。`);
+        setAgentError(t('workflowStage.agentMissing', { name: agentName }));
         return false;
       }
       setAgentError('');
       return true;
     } catch (error) {
-      setAgentError('驗證 Agent 時發生錯誤');
+      setAgentError(t('workflowStage.agentValidateError'));
       return false;
     }
   };
@@ -138,19 +140,19 @@ export const WorkflowStages: React.FC = () => {
       if (isCreating) {
         // 驗證必要欄位
         if (!formData.name) {
-          toast.error('請填寫階段名稱');
+          toast.error(t('workflowStage.nameRequired'));
           return;
         }
 
         // 根據提示詞來源驗證
         if (promptSource === 'custom') {
           if (!formData.system_prompt) {
-            toast.error('請填寫自訂提示詞');
+            toast.error(t('workflowStage.promptRequired'));
             return;
           }
         } else {
           if (!formData.agent_ref) {
-            toast.error('請選擇 Agent');
+            toast.error(t('workflowStage.agentRequired'));
             return;
           }
           
@@ -163,7 +165,7 @@ export const WorkflowStages: React.FC = () => {
 
         // 如果有 Agent 錯誤，阻止儲存
         if (agentError) {
-          toast.error('請先解決 Agent 設定問題');
+          toast.error(t('workflowStage.fixAgentFirst'));
           return;
         }
         await workflowStageService.createStage({
@@ -175,22 +177,22 @@ export const WorkflowStages: React.FC = () => {
           color: formData.color,
           icon: formData.icon
         });
-        toast.success('工作流程階段建立成功');
+        toast.success(t('workflowStage.created'));
       } else if (editingStage) {
         // 同樣的驗證邏輯
         if (!formData.name) {
-          toast.error('請填寫階段名稱');
+          toast.error(t('workflowStage.nameRequired'));
           return;
         }
 
         if (promptSource === 'custom') {
           if (!formData.system_prompt) {
-            toast.error('請填寫自訂提示詞');
+            toast.error(t('workflowStage.promptRequired'));
             return;
           }
         } else {
           if (!formData.agent_ref) {
-            toast.error('請選擇 Agent');
+            toast.error(t('workflowStage.agentRequired'));
             return;
           }
           
@@ -201,7 +203,7 @@ export const WorkflowStages: React.FC = () => {
         }
 
         if (agentError) {
-          toast.error('請先解決 Agent 設定問題');
+          toast.error(t('workflowStage.fixAgentFirst'));
           return;
         }
 
@@ -215,7 +217,7 @@ export const WorkflowStages: React.FC = () => {
           icon: formData.icon,
           is_active: formData.is_active
         });
-        toast.success('工作流程階段更新成功');
+        toast.success(t('workflowStage.updated'));
       }
       setIsCreating(false);
       setEditingStage(null);
@@ -223,27 +225,27 @@ export const WorkflowStages: React.FC = () => {
       setAgentError('');
       loadStages();
     } catch (error: any) {
-      const errorMessage = error.response?.data?.message || '操作失敗';
+      const errorMessage = error.response?.data?.message || t('common.operationFailed');
       toast.error(errorMessage);
       console.error('Failed to save stage:', error);
       
       // 如果是 Agent 相關錯誤，顯示在 agentError 中
-      if (errorMessage.includes('Agent') && errorMessage.includes('不存在')) {
+      if (errorMessage.includes('Agent') && errorMessage.includes(t('workflowStage.doesNotExist'))) {
         setAgentError(errorMessage);
       }
     }
   };
 
   const handleDelete = async (stageId: string) => {
-    if (!confirm('確定要刪除這個工作流程階段嗎？')) {
+    if (!confirm(t('workflowStage.confirmDelete'))) {
       return;
     }
     try {
       await workflowStageService.deleteStage(stageId);
-      toast.success('工作流程階段已刪除');
+      toast.success(t('workflowStage.deleted'));
       loadStages();
     } catch (error) {
-      toast.error('刪除失敗');
+      toast.error(t('common.deleteFailed'));
       console.error('Failed to delete workflow stage:', error);
     }
   };
@@ -289,13 +291,13 @@ export const WorkflowStages: React.FC = () => {
             </div>
             <div>
               <h1 className="text-2xl font-bold bg-gradient-to-r from-gray-800 to-gray-600 bg-clip-text text-transparent">
-                工作流程階段管理
+                {t('workflowStage.title')}
               </h1>
-              <p className="text-sm text-gray-600 mt-0.5">配置 AI 工作流程的專業化階段</p>
+              <p className="text-sm text-gray-600 mt-0.5">{t('workflowStage.subtitle')}</p>
             </div>
             {stages.length > 0 && (
               <span className="px-3 py-1 bg-primary-50 text-primary-700 border border-primary-200 rounded-full text-sm font-medium">
-                {stages.length} 個階段
+                {t('workflowStage.stageCount', { count: stages.length })}
               </span>
             )}
           </div>
@@ -305,43 +307,43 @@ export const WorkflowStages: React.FC = () => {
             className="flex items-center gap-2 btn-primary"
           >
             <Plus className="w-4 h-4" />
-            新增階段
+            {t('workflowStage.addStage')}
           </button>
         </div>
 
         {/* 新增表單 - 玻璃卡片 */}
         {isCreating && (
           <div className="glass-card rounded-xl p-5 mb-6">
-            <h2 className="text-lg font-semibold text-gray-800 mb-3">新增工作流程階段</h2>
+            <h2 className="text-lg font-semibold text-gray-800 mb-3">{t('workflowStage.addTitle')}</h2>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  名稱 *
+                  {t('workflowStage.nameField')}
                 </label>
                 <input
                   type="text"
                   value={formData.name || ''}
                   onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                   className="input"
-                  placeholder="例如：需求分析"
+                  placeholder={t('workflowStage.namePlaceholder')}
                 />
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  描述
+                  {t('common.description')}
                 </label>
                 <input
                   type="text"
                   value={formData.description || ''}
                   onChange={(e) => setFormData({ ...formData, description: e.target.value })}
                   className="input"
-                  placeholder="簡短描述這個階段的目的"
+                  placeholder={t('workflowStage.descPlaceholder')}
                 />
               </div>
               {/* 提示詞來源選擇 */}
               <div className="md:col-span-2">
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  提示詞來源 *
+                  {t('workflowStage.promptSource')}
                 </label>
                 <div className="flex gap-4 mb-3">
                   <label className="flex items-center">
@@ -352,7 +354,7 @@ export const WorkflowStages: React.FC = () => {
                       onChange={() => handlePromptSourceChange('custom')}
                       className="mr-2"
                     />
-                    <span className="text-sm">自訂提示詞</span>
+                    <span className="text-sm">{t('workflowStage.customPrompt')}</span>
                   </label>
                   <label className="flex items-center">
                     <input
@@ -364,11 +366,11 @@ export const WorkflowStages: React.FC = () => {
                       className="mr-2"
                     />
                     <span className={`text-sm ${!isAgentConfigured ? 'text-gray-400' : ''}`}>
-                      使用 Agent
+                      {t('workflowStage.useAgent')}
                     </span>
                     {!isAgentConfigured && (
                       <span className="ml-2 text-xs text-gray-500">
-                        (請先設定 Agent 路徑)
+                        {t('workflowStage.setAgentPathFirst')}
                       </span>
                     )}
                   </label>
@@ -378,20 +380,20 @@ export const WorkflowStages: React.FC = () => {
                 {promptSource === 'custom' ? (
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">
-                      系統提示詞 (System Prompt) *
+                      {t('workflowStage.systemPrompt')}
                     </label>
                     <textarea
                       value={formData.system_prompt || ''}
                       onChange={(e) => setFormData({ ...formData, system_prompt: e.target.value })}
                       rows={4}
                       className="input"
-                      placeholder="定義 AI Agent 在這個階段的行為和角色..."
+                      placeholder={t('workflowStage.systemPromptPlaceholder')}
                     />
                   </div>
                 ) : (
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">
-                      選擇 Agent *
+                      {t('workflowStage.selectAgentField')}
                     </label>
                     <select
                       value={formData.agent_ref || ''}
@@ -400,7 +402,7 @@ export const WorkflowStages: React.FC = () => {
                         agentError ? 'border-red-500' : 'border-gray-300'
                       }`}
                     >
-                      <option value="">選擇一個 Agent...</option>
+                      <option value="">{t('workflowStage.selectAgentPlaceholder')}</option>
                       {agents.map(agent => (
                         <option key={agent.name} value={agent.name}>
                           {agent.name} ({agent.fileName})
@@ -421,14 +423,14 @@ export const WorkflowStages: React.FC = () => {
                                 onClick={() => window.location.href = '/agent-prompts'}
                                 className="text-sm bg-red-100 text-red-800 px-3 py-1 rounded hover:bg-red-200"
                               >
-                                檢查 Agent 設定
+                                {t('workflowStage.checkAgentConfig')}
                               </button>
                               <button
                                 type="button"
                                 onClick={() => handlePromptSourceChange('custom')}
                                 className="text-sm bg-gray-100 text-gray-800 px-3 py-1 rounded hover:bg-gray-200"
                               >
-                                改用自訂提示詞
+                                {t('workflowStage.switchToCustom')}
                               </button>
                             </div>
                           </div>
@@ -440,18 +442,22 @@ export const WorkflowStages: React.FC = () => {
                     {formData.agent_ref && !agentError && (
                       <p className="mt-2 text-sm text-gray-600">
                         <FileText className="inline w-4 h-4 mr-1" />
-                        將使用{' '}
-                        <a
-                          href={`/agent-prompts/${formData.agent_ref}`}
-                          className="bg-gray-100 px-1 py-0.5 rounded hover:bg-gray-200 text-blue-600 hover:underline"
-                          onClick={(e) => {
-                            e.preventDefault();
-                            window.location.href = `/agent-prompts/${formData.agent_ref}`;
+                        <Trans
+                          i18nKey="workflowStage.willUseAgentPrompt"
+                          values={{ file: `${formData.agent_ref}.md` }}
+                          components={{
+                            agentLink: (
+                              <a
+                                href={`/agent-prompts/${formData.agent_ref}`}
+                                className="bg-gray-100 px-1 py-0.5 rounded hover:bg-gray-200 text-blue-600 hover:underline"
+                                onClick={(e) => {
+                                  e.preventDefault();
+                                  window.location.href = `/agent-prompts/${formData.agent_ref}`;
+                                }}
+                              />
+                            ),
                           }}
-                        >
-                          {formData.agent_ref}.md
-                        </a>
-                        {' '}的提示詞
+                        />
                       </p>
                     )}
                   </div>
@@ -460,7 +466,7 @@ export const WorkflowStages: React.FC = () => {
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                   <Palette className="inline w-4 h-4 mr-1" />
-                  顏色
+                  {t('workflowStage.color')}
                 </label>
                 <input
                   type="color"
@@ -472,7 +478,7 @@ export const WorkflowStages: React.FC = () => {
               <div className="md:col-span-2">
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                   <ListTodo className="inline w-4 h-4 mr-1" />
-                  建議任務
+                  {t('workflowStage.suggestedTasks')}
                 </label>
                 <div className="space-y-2">
                   {(formData.suggested_tasks || []).map((task, index) => (
@@ -482,7 +488,7 @@ export const WorkflowStages: React.FC = () => {
                         value={task}
                         onChange={(e) => handleTaskChange(index, e.target.value)}
                         className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                        placeholder="輸入建議任務..."
+                        placeholder={t('workflowStage.suggestedTaskPlaceholder')}
                       />
                       <button
                         onClick={() => removeTask(index)}
@@ -496,7 +502,7 @@ export const WorkflowStages: React.FC = () => {
                     onClick={addTask}
                     className="text-sm text-blue-600 hover:text-blue-700"
                   >
-                    + 新增建議任務
+                    {t('workflowStage.addSuggestedTask')}
                   </button>
                 </div>
               </div>
@@ -506,14 +512,14 @@ export const WorkflowStages: React.FC = () => {
                 onClick={handleCancel}
                 className="btn-secondary"
               >
-                取消
+                {t('common.cancel')}
               </button>
               <button
                 onClick={handleSave}
                 className="flex items-center gap-2 btn-primary"
               >
                 <Save className="w-4 h-4" />
-                儲存
+                {t('common.save')}
               </button>
             </div>
           </div>
@@ -530,7 +536,7 @@ export const WorkflowStages: React.FC = () => {
               {editingStage === stage.stage_id ? (
                 // 編輯模式 - 列表適配表單
                 <div className="p-4 bg-gray-50 border-t border-gray-200">
-                  <h4 className="text-sm font-semibold text-gray-800 mb-4">編輯工作流程階段</h4>
+                  <h4 className="text-sm font-semibold text-gray-800 mb-4">{t('workflowStage.editTitle')}</h4>
 
                   <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
                     {/* 左側基本信息 */}
@@ -538,17 +544,17 @@ export const WorkflowStages: React.FC = () => {
                       {/* 名稱和描述 */}
                       <div className="grid grid-cols-2 gap-3">
                         <div>
-                          <label className="block text-xs font-medium text-gray-700 mb-1">名稱 *</label>
+                          <label className="block text-xs font-medium text-gray-700 mb-1">{t('workflowStage.nameField')}</label>
                           <input
                             type="text"
                             value={formData.name || ''}
                             onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                             className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                            placeholder="階段名稱"
+                            placeholder={t('workflowStage.stageName')}
                           />
                         </div>
                         <div>
-                          <label className="block text-xs font-medium text-gray-700 mb-1">顏色</label>
+                          <label className="block text-xs font-medium text-gray-700 mb-1">{t('workflowStage.color')}</label>
                           <input
                             type="color"
                             value={formData.color || '#8B5CF6'}
@@ -559,19 +565,19 @@ export const WorkflowStages: React.FC = () => {
                       </div>
 
                       <div>
-                        <label className="block text-xs font-medium text-gray-700 mb-1">描述</label>
+                        <label className="block text-xs font-medium text-gray-700 mb-1">{t('common.description')}</label>
                         <input
                           type="text"
                           value={formData.description || ''}
                           onChange={(e) => setFormData({ ...formData, description: e.target.value })}
                           className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                          placeholder="簡短描述這個階段的目的"
+                          placeholder={t('workflowStage.descPlaceholder')}
                         />
                       </div>
 
                       {/* 提示詞來源切換 */}
                       <div>
-                        <label className="block text-xs font-medium text-gray-700 mb-2">提示詞來源 *</label>
+                        <label className="block text-xs font-medium text-gray-700 mb-2">{t('workflowStage.promptSource')}</label>
                         <div className="flex gap-4 mb-3">
                           <label className="flex items-center text-sm">
                             <input
@@ -581,7 +587,7 @@ export const WorkflowStages: React.FC = () => {
                               onChange={() => handlePromptSourceChange('custom')}
                               className="mr-2"
                             />
-                            自訂提示詞
+                            {t('workflowStage.customPrompt')}
                           </label>
                           <label className="flex items-center text-sm">
                             <input
@@ -592,7 +598,7 @@ export const WorkflowStages: React.FC = () => {
                               disabled={!isAgentConfigured}
                               className="mr-2"
                             />
-                            使用 Agent
+                            {t('workflowStage.useAgent')}
                           </label>
                         </div>
 
@@ -604,7 +610,7 @@ export const WorkflowStages: React.FC = () => {
                               onChange={(e) => handleAgentChange(e.target.value)}
                               className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                             >
-                              <option value="">選擇 Agent...</option>
+                              <option value="">{t('workflowStage.selectAgent')}</option>
                               {agents.map(agent => (
                                 <option key={agent.name} value={agent.name}>
                                   {agent.name}
@@ -621,7 +627,7 @@ export const WorkflowStages: React.FC = () => {
                             onChange={(e) => setFormData({ ...formData, system_prompt: e.target.value })}
                             rows={4}
                             className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                            placeholder="定義 AI Agent 在這個階段的行為和角色..."
+                            placeholder={t('workflowStage.systemPromptPlaceholder')}
                           />
                         )}
                       </div>
@@ -629,7 +635,7 @@ export const WorkflowStages: React.FC = () => {
 
                     {/* 右側建議任務 */}
                     <div>
-                      <label className="block text-xs font-medium text-gray-700 mb-2">建議任務</label>
+                      <label className="block text-xs font-medium text-gray-700 mb-2">{t('workflowStage.suggestedTasks')}</label>
                       <div className="space-y-2 max-h-64 overflow-y-auto">
                         {(formData.suggested_tasks || []).map((task, index) => (
                           <div key={index} className="flex gap-2">
@@ -642,7 +648,7 @@ export const WorkflowStages: React.FC = () => {
                                 setFormData({ ...formData, suggested_tasks: tasks });
                               }}
                               className="flex-1 px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                              placeholder="建議任務描述..."
+                              placeholder={t('workflowStage.suggestedTaskDesc')}
                             />
                             <button
                               onClick={() => {
@@ -662,7 +668,7 @@ export const WorkflowStages: React.FC = () => {
                           }}
                           className="w-full py-2 text-sm text-blue-600 hover:text-blue-700 hover:bg-blue-50 rounded-lg transition-all border border-dashed border-blue-300 hover:border-blue-400"
                         >
-                          + 新增建議任務
+                          {t('workflowStage.addSuggestedTask')}
                         </button>
                       </div>
                     </div>
@@ -674,13 +680,13 @@ export const WorkflowStages: React.FC = () => {
                       onClick={handleCancel}
                       className="px-4 py-2 text-sm text-gray-600 hover:bg-gray-100 rounded-lg transition-all"
                     >
-                      取消
+                      {t('common.cancel')}
                     </button>
                     <button
                       onClick={handleSave}
                       className="px-4 py-2 text-sm bg-gradient-to-r from-primary-600 to-primary-700 text-white rounded-lg hover:shadow-blue transition-all"
                     >
-                      儲存變更
+                      {t('common.saveChanges')}
                     </button>
                   </div>
                 </div>
@@ -757,7 +763,7 @@ export const WorkflowStages: React.FC = () => {
                           </div>
                         </>
                       ) : (
-                        <span className="text-xs text-gray-400">無建議任務</span>
+                        <span className="text-xs text-gray-400">{t('workflowStage.noSuggestedTasks')}</span>
                       )}
                     </div>
 
@@ -766,14 +772,14 @@ export const WorkflowStages: React.FC = () => {
                       <button
                         onClick={() => handleEdit(stage)}
                         className="p-1.5 text-gray-600 hover:bg-white/60 rounded transition-all hover:shadow-soft-sm"
-                        title="編輯"
+                        title={t('common.edit')}
                       >
                         <Edit2 className="w-3.5 h-3.5" />
                       </button>
                       <button
                         onClick={() => handleDelete(stage.stage_id)}
                         className="p-1.5 text-danger-600 hover:bg-danger-50 rounded transition-all hover:shadow-soft-sm"
-                        title="刪除"
+                        title={t('common.delete')}
                       >
                         <Trash2 className="w-3.5 h-3.5" />
                       </button>
@@ -783,7 +789,7 @@ export const WorkflowStages: React.FC = () => {
                   {/* 展開的建議任務 */}
                   {expandedTasks.has(stage.stage_id) && stage.suggested_tasks && stage.suggested_tasks.length > 1 && (
                     <div className="mt-2 ml-6 pt-2 border-t border-gray-100">
-                      <div className="text-xs text-gray-500 mb-1">所有建議任務：</div>
+                      <div className="text-xs text-gray-500 mb-1">{t('workflowStage.allSuggestedTasks')}</div>
                       <ul className="text-sm text-gray-700 space-y-0.5">
                         {stage.suggested_tasks.map((task, index) => (
                           <li key={index} className="flex items-start">

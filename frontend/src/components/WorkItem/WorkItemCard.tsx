@@ -1,7 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { formatDistanceToNow } from 'date-fns';
-import { zhTW } from 'date-fns/locale';
 import {
   Briefcase,
   Clock,
@@ -12,6 +11,8 @@ import {
   Calendar
 } from 'lucide-react';
 import { WorkItem } from '../../types/workitem';
+import { useTranslation } from 'react-i18next';
+import { getDateLocale } from '../../i18n';
 
 interface WorkItemCardProps {
   workItem: WorkItem;
@@ -26,6 +27,8 @@ export const WorkItemCard: React.FC<WorkItemCardProps> = ({
   onDelete,
   onStatusChange
 }) => {
+  const { t } = useTranslation();
+  const dateLocale = getDateLocale();
   const navigate = useNavigate();
   const [menuOpen, setMenuOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
@@ -56,10 +59,10 @@ export const WorkItemCard: React.FC<WorkItemCardProps> = ({
   }, [menuOpen]);
 
   const statusConfig = {
-    planning: { icon: Clock, color: 'text-gray-500', bg: 'bg-gray-100', label: '規劃中' },
-    in_progress: { icon: Play, color: 'text-blue-500', bg: 'bg-blue-100', label: '進行中' },
-    completed: { icon: CheckCircle, color: 'text-green-500', bg: 'bg-green-100', label: '已完成' },
-    cancelled: { icon: XCircle, color: 'text-red-500', bg: 'bg-red-100', label: '已取消' }
+    planning: { icon: Clock, color: 'text-gray-500', bg: 'bg-gray-100', label: t('workItemStatus.planning') },
+    in_progress: { icon: Play, color: 'text-blue-500', bg: 'bg-blue-100', label: t('workItemStatus.inProgress') },
+    completed: { icon: CheckCircle, color: 'text-green-500', bg: 'bg-green-100', label: t('common.completed') },
+    cancelled: { icon: XCircle, color: 'text-red-500', bg: 'bg-red-100', label: t('workItemStatus.cancelled') }
   };
 
 
@@ -117,7 +120,7 @@ export const WorkItemCard: React.FC<WorkItemCardProps> = ({
                       }}
                       className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"
                     >
-                      編輯
+                      {t('common.edit')}
                     </button>
                   )}
                   
@@ -130,7 +133,7 @@ export const WorkItemCard: React.FC<WorkItemCardProps> = ({
                       }}
                       className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"
                     >
-                      開始執行
+                      {t('workItem.start')}
                     </button>
                   )}
                   
@@ -143,7 +146,7 @@ export const WorkItemCard: React.FC<WorkItemCardProps> = ({
                       }}
                       className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"
                     >
-                      標記完成
+                      {t('workItem.markDone')}
                     </button>
                   )}
                   
@@ -156,7 +159,7 @@ export const WorkItemCard: React.FC<WorkItemCardProps> = ({
                       }}
                       className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"
                     >
-                      取消
+                      {t('common.cancel')}
                     </button>
                   )}
                   
@@ -171,7 +174,7 @@ export const WorkItemCard: React.FC<WorkItemCardProps> = ({
                         }}
                         className="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50"
                       >
-                        刪除
+                        {t('common.delete')}
                       </button>
                     </>
                   )}
@@ -221,13 +224,13 @@ export const WorkItemCard: React.FC<WorkItemCardProps> = ({
           <div className="flex items-center gap-1">
             <Calendar className="w-3 h-3" />
             <span>
-              創建於 {formatDistanceToNow(new Date(workItem.created_at), { locale: zhTW, addSuffix: true })}
+              {t('workItem.createdAtLabel', { when: formatDistanceToNow(new Date(workItem.created_at), { locale: dateLocale, addSuffix: true }) })}
             </span>
           </div>
           
           {workItem.completed_at && (
             <span className="text-green-600">
-              完成於 {formatDistanceToNow(new Date(workItem.completed_at), { locale: zhTW, addSuffix: true })}
+              {t('workItem.completedAtLabel', { when: formatDistanceToNow(new Date(workItem.completed_at), { locale: dateLocale, addSuffix: true }) })}
             </span>
           )}
         </div>

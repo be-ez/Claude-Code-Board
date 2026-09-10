@@ -181,6 +181,9 @@ async function startServer() {
     // Task Template routes (需要認證)
     const taskTemplateRouter = (await import('./routes/taskTemplate.routes')).default;
 
+    // Claude Code session import routes (需要認證)
+    const claudeImportRouter = (await import('./routes/claudeImport.routes')).default;
+
     // Session routes (需要認證)
     const { authMiddleware } = await import('./middleware/auth.middleware');
     app.use('/api/sessions', authMiddleware, sessionRouter);
@@ -191,6 +194,7 @@ async function startServer() {
     app.use('/api/work-items', authMiddleware, workItemRouter);
     app.use('/api/agent-prompts', authMiddleware, agentPromptsRouter);
     app.use('/api/task-templates', authMiddleware, taskTemplateRouter);
+    app.use('/api/claude-import', authMiddleware, claudeImportRouter);
     
     logger.info('Routes initialized successfully');
 

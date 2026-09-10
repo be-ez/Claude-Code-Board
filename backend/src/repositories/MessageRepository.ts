@@ -52,9 +52,12 @@ export class MessageRepository {
     };
   }
   
-  async save(message: Omit<Message, 'messageId' | 'timestamp'>): Promise<Message> {
+  async save(
+    message: Omit<Message, 'messageId' | 'timestamp'> & { timestamp?: Date }
+  ): Promise<Message> {
     const messageId = uuidv4();
-    const timestamp = new Date();
+    // Imported history carries its original timestamp; live messages get now.
+    const timestamp = message.timestamp ?? new Date();
     const originalSize = Buffer.byteLength(message.content, 'utf8');
     
     let content = message.content;

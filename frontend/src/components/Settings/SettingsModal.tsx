@@ -1,9 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
-import { X, Plus, Trash2, Settings, FolderOpen, Code, Home, MessageSquare } from 'lucide-react';
+import { X, Plus, Trash2, Settings, FolderOpen, Code, Home, MessageSquare, Languages, DownloadCloud } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { useSettings, CommonPath } from '../../hooks/useSettings';
 import { TaskTemplateSettings } from './TaskTemplateSettings';
+import { LanguageSettings } from './LanguageSettings';
+import { ImportSessionsSettings } from './ImportSessionsSettings';
+import { useTranslation } from 'react-i18next';
 
 
 interface SettingsModalProps {
@@ -17,12 +20,13 @@ const iconComponents = {
   Home,
 };
 
-type TabType = 'paths' | 'templates';
+type TabType = 'paths' | 'templates' | 'import' | 'language';
 
 export const SettingsModal: React.FC<SettingsModalProps> = ({
   isOpen,
   onClose,
 }) => {
+  const { t } = useTranslation();
   const [activeTab, setActiveTab] = useState<TabType>('paths');
 
   const {
@@ -62,7 +66,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
 
   const handleSaveNewPath = async () => {
     if (!newPathData.label.trim() || !newPathData.path.trim()) {
-      toast.error('標籤和路徑不能為空');
+      toast.error(t('settings.labelPathRequired'));
       return;
     }
     
@@ -121,7 +125,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
         <div className="flex items-center justify-between p-4 sm:p-6 border-b border-gray-200">
           <div className="flex items-center space-x-2">
             <Settings className="w-5 h-5 text-gray-600" />
-            <h2 className="text-lg sm:text-xl font-semibold text-gray-900">設定</h2>
+            <h2 className="text-lg sm:text-xl font-semibold text-gray-900">{t('nav.settings')}</h2>
           </div>
           <button
             onClick={onClose}
@@ -142,7 +146,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
             }`}
           >
             <FolderOpen className="w-4 h-4" />
-            <span>常用路徑</span>
+            <span>{t('settings.commonPaths')}</span>
           </button>
           <button
             onClick={() => setActiveTab('templates')}
@@ -153,7 +157,29 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
             }`}
           >
             <MessageSquare className="w-4 h-4" />
-            <span>任務模板</span>
+            <span>{t('settings.taskTemplates')}</span>
+          </button>
+          <button
+            onClick={() => setActiveTab('import')}
+            className={`flex items-center space-x-2 px-4 py-3 border-b-2 transition-colors ${
+              activeTab === 'import'
+                ? 'border-blue-600 text-blue-600'
+                : 'border-transparent text-gray-500 hover:text-gray-700'
+            }`}
+          >
+            <DownloadCloud className="w-4 h-4" />
+            <span>{t('importSessions.tab')}</span>
+          </button>
+          <button
+            onClick={() => setActiveTab('language')}
+            className={`flex items-center space-x-2 px-4 py-3 border-b-2 transition-colors ${
+              activeTab === 'language'
+                ? 'border-blue-600 text-blue-600'
+                : 'border-transparent text-gray-500 hover:text-gray-700'
+            }`}
+          >
+            <Languages className="w-4 h-4" />
+            <span>{t('settings.language')}</span>
           </button>
         </div>
 
@@ -162,13 +188,13 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
           {activeTab === 'paths' && (
             <div>
               <div className="flex items-center justify-between mb-4">
-                <h3 className="text-lg font-medium text-gray-900">常用路徑</h3>
+                <h3 className="text-lg font-medium text-gray-900">{t('settings.commonPaths')}</h3>
                 <div className="flex space-x-2">
                   <button
                     onClick={handleResetToDefault}
                     className="px-3 py-1.5 text-sm text-gray-600 hover:text-gray-800 hover:bg-gray-100 rounded-lg transition-colors"
                   >
-                    重置預設
+                    {t('settings.resetDefaults')}
                   </button>
                   <button
                     onClick={addNewPath}
@@ -176,7 +202,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                     className="flex items-center space-x-1 px-3 py-1.5 text-sm bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                   >
                     <Plus className="w-4 h-4" />
-                    <span>新增</span>
+                    <span>{t('common.add')}</span>
                   </button>
                 </div>
               </div>
@@ -189,35 +215,35 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                         <div>
                           <label className="block text-sm font-medium text-gray-700 mb-1">
-                            標籤
+                            {t('tag.label')}
                           </label>
                           <input
                             type="text"
                             value={newPathData.label}
                             onChange={(e) => setNewPathData(prev => ({ ...prev, label: e.target.value }))}
                             className="w-full px-3 py-2 text-sm sm:text-base border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"
-                            placeholder="路徑標籤"
+                            placeholder={t('settings.pathLabel')}
                             autoFocus
                           />
                         </div>
                         <div>
                           <label className="block text-sm font-medium text-gray-700 mb-1">
-                            圖示
+                            {t('settings.icon')}
                           </label>
                           <select
                             value={newPathData.icon}
                             onChange={(e) => setNewPathData(prev => ({ ...prev, icon: e.target.value as any }))}
                             className="w-full px-3 py-2 text-sm sm:text-base border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"
                           >
-                            <option value="FolderOpen">📁 資料夾</option>
-                            <option value="Code">💻 程式碼</option>
-                            <option value="Home">🏠 家目錄</option>
+                            <option value="FolderOpen">{t('settings.iconFolder')}</option>
+                            <option value="Code">{t('settings.iconCode')}</option>
+                            <option value="Home">{t('settings.iconHome')}</option>
                           </select>
                         </div>
                       </div>
                       <div>
                         <label className="block text-sm font-medium text-gray-700 mb-1">
-                          路徑
+                          {t('settings.path')}
                         </label>
                         <input
                           type="text"
@@ -232,13 +258,13 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                           onClick={handleCancelNewPath}
                           className="px-3 py-1.5 text-sm text-gray-600 hover:text-gray-800 transition-colors"
                         >
-                          取消
+                          {t('common.cancel')}
                         </button>
                         <button
                           onClick={handleSaveNewPath}
                           className="px-3 py-1.5 text-sm bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
                         >
-                          新增
+                          {t('common.add')}
                         </button>
                       </div>
                     </div>
@@ -264,12 +290,12 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
               {commonPaths.length === 0 && !isAddingNew && (
                 <div className="text-center py-8 text-gray-500">
                   <FolderOpen className="w-12 h-12 mx-auto mb-2 opacity-50" />
-                  <p>尚無常用路徑</p>
+                  <p>{t('settings.noPaths')}</p>
                   <button
                     onClick={addNewPath}
                     className="mt-2 text-blue-600 hover:text-blue-700"
                   >
-                    新增第一個路徑
+                    {t('settings.addFirstPath')}
                   </button>
                 </div>
               )}
@@ -277,18 +303,22 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
           )}
 
           {activeTab === 'templates' && <TaskTemplateSettings />}
+
+          {activeTab === 'import' && <ImportSessionsSettings onImported={onClose} />}
+
+          {activeTab === 'language' && <LanguageSettings />}
         </div>
 
         {/* 底部按鈕 */}
         <div className="flex items-center justify-between p-4 sm:p-6 border-t border-gray-200 bg-gray-50">
           <div className="text-xs sm:text-sm text-gray-500">
-            設定會自動同步到資料庫
+            {t('settings.autoSync')}
           </div>
           <button
             onClick={onClose}
             className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
           >
-            關閉
+            {t('common.close')}
           </button>
         </div>
       </div>
@@ -313,6 +343,7 @@ const PathEditor: React.FC<PathEditorProps> = ({
   onUpdate,
   onDelete,
 }) => {
+  const { t } = useTranslation();
   const [editData, setEditData] = useState<CommonPath>({
     id: path.id,
     label: path.label,
@@ -333,7 +364,7 @@ const PathEditor: React.FC<PathEditorProps> = ({
   const handleSave = () => {
     console.log('Saving editData:', editData);
     if (!editData.label.trim() || !editData.path.trim()) {
-      toast.error('標籤和路徑不能為空');
+      toast.error(t('settings.labelPathRequired'));
       return;
     }
     onUpdate(editData);
@@ -353,7 +384,7 @@ const PathEditor: React.FC<PathEditorProps> = ({
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
-                標籤
+                {t('tag.label')}
               </label>
               <input
                 type="text"
@@ -368,27 +399,27 @@ const PathEditor: React.FC<PathEditorProps> = ({
                   });
                 }}
                 className="w-full px-3 py-2 text-sm sm:text-base border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                placeholder="路徑標籤"
+                placeholder={t('settings.pathLabel')}
               />
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
-                圖示
+                {t('settings.icon')}
               </label>
               <select
                 value={editData.icon}
                 onChange={(e) => setEditData(prev => ({ ...prev, icon: e.target.value as any }))}
                 className="w-full px-3 py-2 text-sm sm:text-base border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
               >
-                <option value="FolderOpen">📁 資料夾</option>
-                <option value="Code">💻 程式碼</option>
-                <option value="Home">🏠 家目錄</option>
+                <option value="FolderOpen">{t('settings.iconFolder')}</option>
+                <option value="Code">{t('settings.iconCode')}</option>
+                <option value="Home">{t('settings.iconHome')}</option>
               </select>
             </div>
           </div>
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
-              路徑
+              {t('settings.path')}
             </label>
             <input
               type="text"
@@ -406,13 +437,13 @@ const PathEditor: React.FC<PathEditorProps> = ({
               onClick={handleCancel}
               className="px-3 py-1.5 text-sm text-gray-600 hover:text-gray-800 transition-colors"
             >
-              取消
+              {t('common.cancel')}
             </button>
             <button
               onClick={handleSave}
               className="px-3 py-1.5 text-sm bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
             >
-              儲存
+              {t('common.save')}
             </button>
           </div>
         </div>
@@ -433,14 +464,14 @@ const PathEditor: React.FC<PathEditorProps> = ({
         <button
           onClick={() => onEdit(path)}
           className="p-1.5 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
-          title="編輯"
+          title={t('common.edit')}
         >
           <Settings className="w-4 h-4" />
         </button>
         <button
           onClick={() => onDelete(path.id)}
           className="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
-          title="刪除"
+          title={t('common.delete')}
         >
           <Trash2 className="w-4 h-4" />
         </button>

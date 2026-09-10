@@ -671,11 +671,25 @@
 }
 
 /* 行內程式碼樣式 */
+/* Colour is set explicitly rather than inherited: these pills also appear
+   inside white-on-blue message bubbles, where an inherited colour renders
+   white text on a pale background. */
 .markdown-body :not(pre) > code {
-  @apply bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 px-1.5 py-0.5 rounded-md text-sm font-mono;
+  @apply bg-blue-50 dark:bg-blue-900/30 px-1.5 py-0.5 rounded-md text-sm font-mono;
+  color: theme('colors.blue.700') !important;
   font-size: 0.875em;
   word-break: break-all;
   overflow-wrap: anywhere;
+}
+
+/* Code blocks are dark, so everything inside one must stay light. */
+.markdown-body pre code,
+.markdown-body pre code span {
+  color: inherit;
+}
+
+.markdown-body pre code {
+  @apply text-gray-100;
 }
 
 /* 調整程式碼區塊中的高亮樣式 */
@@ -742,14 +756,22 @@
 }
 
 /* 使用者訊息內的 Markdown 樣式調整 */
-.bg-blue-600 .markdown-body {
+/* Markdown inside the user's own bubble, which is white text on blue.
+   The old rules keyed off `.bg-blue-600`; the bubble is a gradient now, so
+   they silently stopped applying and left code unreadable. */
+.user-message .markdown-body {
   @apply text-white;
 }
 
-.bg-blue-600 .markdown-body :not(pre) > code {
-  @apply bg-blue-500/30 text-blue-100 border border-blue-400/30;
+.user-message .markdown-body :not(pre) > code {
+  @apply bg-blue-900/40 border border-blue-300/30;
+  color: theme('colors.blue.50') !important;
 }
 
-.bg-blue-600 .markdown-body a {
-  @apply text-blue-200 hover:text-blue-100;
+.user-message .markdown-body pre {
+  @apply bg-blue-950/60 border border-blue-300/20 shadow-none;
+}
+
+.user-message .markdown-body a {
+  @apply text-blue-100 hover:text-white;
 }

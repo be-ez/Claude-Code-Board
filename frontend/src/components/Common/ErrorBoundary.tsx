@@ -1,5 +1,7 @@
 import React, { Component, ErrorInfo, ReactNode } from 'react';
 import { AlertTriangle, RefreshCw, Home } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
+import i18n from '../../i18n';
 
 interface Props {
   children: ReactNode;
@@ -64,24 +66,24 @@ export class ErrorBoundary extends Component<Props, State> {
             <div className="mb-4">
               <AlertTriangle className="w-16 h-16 text-red-500 mx-auto mb-4" />
               <h2 className="text-xl font-semibold text-gray-900 mb-2">
-                糟糕！發生了一些問題
+                {i18n.t('errorBoundary.title')}
               </h2>
               <p className="text-gray-600 mb-4">
-                應用程式遇到未預期的錯誤，請嘗試重新載入頁面或返回首頁。
+                {i18n.t('errorBoundary.description')}
               </p>
             </div>
 
             {/* 錯誤詳情（開發環境顯示） */}
             {process.env.NODE_ENV === 'development' && this.state.error && (
               <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg text-left">
-                <h3 className="text-sm font-medium text-red-800 mb-1">錯誤詳情：</h3>
+                <h3 className="text-sm font-medium text-red-800 mb-1">{i18n.t('errorBoundary.details')}</h3>
                 <pre className="text-xs text-red-700 overflow-auto">
                   {this.state.error.toString()}
                 </pre>
                 {this.state.errorInfo && (
                   <details className="mt-2">
                     <summary className="text-xs text-red-800 cursor-pointer">
-                      堆疊追蹤
+                      {i18n.t('errorBoundary.stackTrace')}
                     </summary>
                     <pre className="text-xs text-red-700 mt-1 overflow-auto">
                       {this.state.errorInfo.componentStack}
@@ -97,7 +99,7 @@ export class ErrorBoundary extends Component<Props, State> {
                 className="flex items-center justify-center space-x-2 w-full px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
               >
                 <RefreshCw className="w-4 h-4" />
-                <span>重試</span>
+                <span>{i18n.t('common.retry')}</span>
               </button>
               
               <button
@@ -105,14 +107,14 @@ export class ErrorBoundary extends Component<Props, State> {
                 className="flex items-center justify-center space-x-2 w-full px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
               >
                 <Home className="w-4 h-4" />
-                <span>返回首頁</span>
+                <span>{i18n.t('errorBoundary.backHome')}</span>
               </button>
             </div>
 
             {/* 聯繫支援資訊 */}
             <div className="mt-4 pt-4 border-t border-gray-200">
               <p className="text-xs text-gray-500">
-                如果問題持續發生，請聯繫技術支援
+                {i18n.t('errorBoundary.contactSupport')}
               </p>
             </div>
           </div>
@@ -131,6 +133,7 @@ interface ErrorFallbackProps {
 }
 
 export const ErrorFallback: React.FC<ErrorFallbackProps> = ({ error, resetError }) => {
+  const { t } = useTranslation();
   const handleGoHome = () => {
     window.location.href = '/';
   };
@@ -140,10 +143,10 @@ export const ErrorFallback: React.FC<ErrorFallbackProps> = ({ error, resetError 
       <div className="max-w-md w-full bg-white rounded-lg shadow-lg p-6 text-center">
         <AlertTriangle className="w-12 h-12 text-red-500 mx-auto mb-4" />
         <h3 className="text-lg font-semibold text-gray-900 mb-2">
-          載入失敗
+          {t('common.loadFailed')}
         </h3>
         <p className="text-gray-600 mb-4">
-          {error.message || '發生未知錯誤'}
+          {error.message || t('common.unknownError')}
         </p>
         
         <div className="flex flex-col space-y-2">
@@ -152,7 +155,7 @@ export const ErrorFallback: React.FC<ErrorFallbackProps> = ({ error, resetError 
             className="flex items-center justify-center space-x-2 w-full px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
           >
             <RefreshCw className="w-4 h-4" />
-            <span>重試</span>
+            <span>{t('common.retry')}</span>
           </button>
           
           <button
@@ -160,7 +163,7 @@ export const ErrorFallback: React.FC<ErrorFallbackProps> = ({ error, resetError 
             className="flex items-center justify-center space-x-2 w-full px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
           >
             <Home className="w-4 h-4" />
-            <span>返回首頁</span>
+            <span>{t('errorBoundary.backHome')}</span>
           </button>
         </div>
       </div>

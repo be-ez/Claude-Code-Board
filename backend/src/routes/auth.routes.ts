@@ -2,6 +2,7 @@ import express from 'express';
 import jwt from 'jsonwebtoken';
 import { logger } from '../utils/logger';
 import { getEnvConfig } from '../config/env.config';
+import { reqT } from '../i18n';
 
 const router = express.Router();
 
@@ -20,7 +21,7 @@ router.post('/login', (req, res) => {
     if (username !== adminUsername || password !== adminPassword) {
       return res.status(401).json({
         success: false,
-        message: '帳號或密碼錯誤'
+        message: reqT(req)('auth.badCredentials')
       });
     }
 
@@ -35,13 +36,13 @@ router.post('/login', (req, res) => {
       success: true,
       token,
       expiresIn: 7 * 24 * 60 * 60 * 1000, // 7天的毫秒數
-      message: '登入成功'
+      message: reqT(req)('auth.loginSuccess')
     });
   } catch (error) {
     console.error('Login error:', error);
     res.status(500).json({
       success: false,
-      message: '登入時發生錯誤'
+      message: reqT(req)('auth.loginError')
     });
   }
 });
@@ -53,7 +54,7 @@ router.get('/verify', (req, res) => {
   if (!token) {
     return res.status(401).json({
       success: false,
-      message: '未提供 token'
+      message: reqT(req)('auth.noToken')
     });
   }
 
@@ -63,13 +64,13 @@ router.get('/verify', (req, res) => {
     
     res.json({
       success: true,
-      message: 'Token 有效',
+      message: reqT(req)('auth.tokenValid'),
       decoded
     });
   } catch (error) {
     res.status(401).json({
       success: false,
-      message: 'Token 無效或已過期'
+      message: reqT(req)('auth.tokenInvalidOrExpired')
     });
   }
 });

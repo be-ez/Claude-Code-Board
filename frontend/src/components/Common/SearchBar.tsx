@@ -1,6 +1,7 @@
 import React, { useState, useCallback, useEffect } from 'react';
 import { Search, X } from 'lucide-react';
 import { useDebounce } from '../../hooks/useDebounce';
+import { useTranslation } from 'react-i18next';
 
 interface SearchBarProps {
   placeholder?: string;
@@ -13,7 +14,7 @@ interface SearchBarProps {
 }
 
 export const SearchBar: React.FC<SearchBarProps> = ({
-  placeholder = '搜尋...',
+  placeholder: placeholderProp,
   onSearch,
   defaultValue = '',
   className = '',
@@ -21,6 +22,8 @@ export const SearchBar: React.FC<SearchBarProps> = ({
   showClearButton = true,
   debounceDelay = 300
 }) => {
+  const { t } = useTranslation();
+  const placeholder = placeholderProp ?? t('common.search');
   const [searchQuery, setSearchQuery] = useState(defaultValue);
   const debouncedQuery = useDebounce(searchQuery, debounceDelay);
 
@@ -57,7 +60,7 @@ export const SearchBar: React.FC<SearchBarProps> = ({
           <button
             onClick={handleClear}
             className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
-            title="清除搜尋"
+            title={t('common.clearSearch')}
           >
             <X className="w-4 h-4" />
           </button>

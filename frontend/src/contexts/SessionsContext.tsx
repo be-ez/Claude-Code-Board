@@ -257,7 +257,7 @@ export const SessionsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
       messageCount?: number;
       updatedAt?: string;
     }) => {
-      console.log('=== 收到 session_updated 事件 ===', data);
+      console.log('=== received session_updated event ===', data);
       setSessions(prev => {
         const updated = prev.map(session => 
           session.sessionId === data.sessionId ? {
@@ -267,7 +267,7 @@ export const SessionsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
             updatedAt: data.updatedAt ? new Date(data.updatedAt) : session.updatedAt
           } : session
         );
-        console.log('=== Sessions 狀態已更新 ===');
+        console.log('=== sessions state updated ===');
         return updated;
       });
     };

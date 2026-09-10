@@ -8,8 +8,10 @@ import { CreateWorkItemDialog } from '../components/WorkItem/CreateWorkItemDialo
 import { EditWorkItemDialog } from '../components/WorkItem/EditWorkItemDialog';
 import { WorkItemStatus, WorkItem } from '../types/workitem';
 import { SearchBar } from '../components/Common/SearchBar';
+import { useTranslation } from 'react-i18next';
 
 export const WorkItemListPage: React.FC = () => {
+  const { t } = useTranslation();
   const {
     workItems,
     stats,
@@ -59,34 +61,34 @@ export const WorkItemListPage: React.FC = () => {
       
       // 顯示成功提示
       const statusText: Record<string, string> = {
-        'planning': '已設為規劃中',
-        'in_progress': '已開始執行',
-        'completed': '已標記完成',
-        'cancelled': '已取消'
+        'planning': t('workItemDetail.setPlanning'),
+        'in_progress': t('workItemDetail.setInProgress'),
+        'completed': t('workItemDetail.setCompleted'),
+        'cancelled': t('workItemStatus.cancelled')
       };
-      toast.success(`Work Item ${statusText[status] || '狀態已更新'}`);
+      toast.success(t('workItemDetail.workItemStatus', { status: statusText[status] || t('workItemDetail.statusUpdated') }));
     } catch (err) {
       console.error('Failed to update work item status:', err);
-      toast.error('更新狀態失敗');
+      toast.error(t('workItemDetail.statusUpdateFailed'));
     }
   };
 
   const handleDelete = async (workItemId: string) => {
-    if (window.confirm('確定要刪除這個 Work Item 嗎？相關的 Sessions 不會被刪除。')) {
+    if (window.confirm(t('workItemList.confirmDelete'))) {
       try {
         await deleteWorkItem(workItemId);
         await fetchStats();
-        toast.success('Work Item 已刪除');
+        toast.success(t('workItemDetail.deleted'));
       } catch (err) {
         console.error('Failed to delete work item:', err);
-        toast.error('刪除 Work Item 失敗');
+        toast.error(t('workItemDetail.deleteFailed'));
       }
     }
   };
 
   const handleWorkItemCreated = () => {
     loadData();
-    toast.success('Work Item 已建立');
+    toast.success(t('workItemList.created'));
   };
 
   const handleEdit = (workItem: WorkItem) => {
@@ -98,7 +100,7 @@ export const WorkItemListPage: React.FC = () => {
     loadData();
     setEditDialogOpen(false);
     setEditingWorkItem(null);
-    toast.success('Work Item 已更新');
+    toast.success(t('workItemDetail.updated'));
   };
 
   // 搜尋過濾和排序
@@ -123,11 +125,11 @@ export const WorkItemListPage: React.FC = () => {
     });
 
   const statusTabs = [
-    { value: 'all', label: '全部', count: stats?.total },
-    { value: 'planning', label: '規劃中', count: stats?.planning },
-    { value: 'in_progress', label: '進行中', count: stats?.in_progress },
-    { value: 'completed', label: '已完成', count: stats?.completed },
-    { value: 'cancelled', label: '已取消', count: stats?.cancelled }
+    { value: 'all', label: t('common.all'), count: stats?.total },
+    { value: 'planning', label: t('workItemStatus.planning'), count: stats?.planning },
+    { value: 'in_progress', label: t('workItemStatus.inProgress'), count: stats?.in_progress },
+    { value: 'completed', label: t('common.completed'), count: stats?.completed },
+    { value: 'cancelled', label: t('workItemStatus.cancelled'), count: stats?.cancelled }
   ];
 
   return (
@@ -142,7 +144,7 @@ export const WorkItemListPage: React.FC = () => {
             <h1 className="text-3xl font-bold bg-gradient-to-r from-gray-800 to-gray-600 bg-clip-text text-transparent">Work Items</h1>
             {stats && (
               <span className="px-3 py-1 bg-primary-50 text-primary-700 border border-primary-200 rounded-full text-sm font-medium">
-                總計 {stats.total}
+                {t('common.totalCount', { count: stats.total })}
               </span>
             )}
           </div>
@@ -160,7 +162,7 @@ export const WorkItemListPage: React.FC = () => {
               className="btn-primary flex items-center gap-2"
             >
               <Plus className="w-5 h-5" />
-              新增 Work Item
+              {t('workItemList.add')}
             </button>
           </div>
         </div>
@@ -209,7 +211,7 @@ export const WorkItemListPage: React.FC = () => {
           
           <div className="p-4">
             <SearchBar
-              placeholder="搜尋 Work Items..."
+              placeholder={t('workItemList.search')}
               onSearch={setSearchQuery}
               defaultValue={searchQuery}
               className="w-full"
@@ -228,10 +230,10 @@ export const WorkItemListPage: React.FC = () => {
               <Briefcase className="w-16 h-16 text-gray-400" />
             </div>
             <h3 className="text-lg font-medium text-gray-900 mb-2">
-              {searchQuery ? '沒有找到符合條件的 Work Items' : '還沒有 Work Items'}
+              {searchQuery ? t('workItemList.noResults') : t('workItemList.empty')}
             </h3>
             <p className="text-gray-500 mb-6">
-              Work Items 幫助您組織和追蹤相關的 Sessions
+              {t('workItemList.emptyHint')}
             </p>
             {!searchQuery && (
               <button
@@ -239,7 +241,7 @@ export const WorkItemListPage: React.FC = () => {
                 className="btn-primary inline-flex items-center gap-2"
               >
                 <Plus className="w-5 h-5" />
-                創建第一個 Work Item
+                {t('workItemList.createFirst')}
               </button>
             )}
           </div>

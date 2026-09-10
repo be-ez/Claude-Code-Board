@@ -16,12 +16,14 @@ import { cn } from '../../utils';
 import { SettingsModal } from '../Settings/SettingsModal';
 import { useAuth } from '../../contexts/AuthContext';
 import { Tooltip } from '../Common/Tooltip';
+import { useTranslation } from 'react-i18next';
 
 interface SidebarProps {
   onCreateSession?: () => void;
 }
 
 export const Sidebar: React.FC<SidebarProps> = ({ onCreateSession }) => {
+  const { t } = useTranslation();
   const location = useLocation();
   const { sessionsByStatus, loading } = useSessions();
   const { logout } = useAuth();
@@ -112,7 +114,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ onCreateSession }) => {
           isCollapsed ? "space-y-1 p-2" : "space-y-1.5 p-4"
         )}>
           {isCollapsed ? (
-            <Tooltip content="所有 Sessions" side="right">
+            <Tooltip content={t('nav.allSessions')} side="right">
               <Link
                 to="/"
                 className={cn(
@@ -142,7 +144,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ onCreateSession }) => {
             >
               <div className="flex items-center space-x-3">
                 <Home className="w-5 h-5 text-current transition-transform group-hover:scale-110" />
-                <span className="font-medium">所有 Sessions</span>
+                <span className="font-medium">{t('nav.allSessions')}</span>
               </div>
               {totalSessions > 0 && (
                 <span className={cn(
@@ -189,7 +191,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ onCreateSession }) => {
           )}
 
           {isCollapsed ? (
-            <Tooltip content="工作流程階段" side="right">
+            <Tooltip content={t('nav.workflowStages')} side="right">
               <Link
                 to="/workflow-stages"
                 className={cn(
@@ -214,13 +216,13 @@ export const Sidebar: React.FC<SidebarProps> = ({ onCreateSession }) => {
             >
               <div className="flex items-center space-x-3">
                 <Workflow className="w-5 h-5 text-current transition-transform group-hover:scale-110" />
-                <span className="font-medium">工作流程階段</span>
+                <span className="font-medium">{t('nav.workflowStages')}</span>
               </div>
             </Link>
           )}
 
           {isCollapsed ? (
-            <Tooltip content="Agent 提示詞" side="right">
+            <Tooltip content={t('nav.agentPrompts')} side="right">
               <Link
                 to="/agent-prompts"
                 className={cn(
@@ -245,7 +247,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ onCreateSession }) => {
             >
               <div className="flex items-center space-x-3">
                 <FileText className="w-5 h-5 text-current transition-transform group-hover:scale-110" />
-                <span className="font-medium">Agent 提示詞</span>
+                <span className="font-medium">{t('nav.agentPrompts')}</span>
               </div>
             </Link>
           )}
@@ -263,7 +265,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ onCreateSession }) => {
           )}></div>
           {isCollapsed ? (
             <>
-              <Tooltip content="建立 Session" side="right">
+              <Tooltip content={t('nav.createSession')} side="right">
                 <button
                   onClick={onCreateSession}
                   className="w-full flex items-center justify-center p-2.5 bg-gradient-to-r from-green-500 to-emerald-600 text-white rounded-lg hover:from-green-600 hover:to-emerald-700 shadow-soft-md hover:shadow-soft-lg transition-all duration-200 border border-green-400/30 backdrop-blur-sm group mx-1"
@@ -272,7 +274,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ onCreateSession }) => {
                 </button>
               </Tooltip>
 
-              <Tooltip content="設定" side="right">
+              <Tooltip content={t('nav.settings')} side="right">
                 <button
                   onClick={() => setIsSettingsOpen(true)}
                   className="w-full flex items-center justify-center p-2.5 bg-white/20 text-gray-700 rounded-lg hover:bg-white/30 shadow-soft-md hover:shadow-soft-lg transition-all duration-200 border border-white/40 backdrop-blur-sm group mx-1"
@@ -281,7 +283,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ onCreateSession }) => {
                 </button>
               </Tooltip>
 
-              <Tooltip content="登出" side="right">
+              <Tooltip content={t('nav.logout')} side="right">
                 <button
                   onClick={logout}
                   className="w-full flex items-center justify-center p-2.5 bg-red-50/80 text-red-600 rounded-lg hover:bg-red-100/80 shadow-soft-md hover:shadow-soft-lg transition-all duration-200 border border-red-200/50 backdrop-blur-sm group mx-1"
@@ -297,7 +299,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ onCreateSession }) => {
                 className="w-full flex items-center justify-center px-4 py-3 bg-gradient-to-r from-green-500 to-emerald-600 text-white rounded-xl hover:from-green-600 hover:to-emerald-700 shadow-soft-md hover:shadow-soft-lg transition-all duration-200 border border-green-400/30 backdrop-blur-sm group font-medium"
               >
                 <Plus className="w-4 h-4 mr-2 transition-transform group-hover:scale-110" />
-                建立 Session
+                {t('nav.createSession')}
               </button>
 
               <button
@@ -305,7 +307,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ onCreateSession }) => {
                 className="w-full flex items-center justify-center px-4 py-3 bg-white/20 text-gray-700 rounded-xl hover:bg-white/30 shadow-soft-md hover:shadow-soft-lg transition-all duration-200 border border-white/40 backdrop-blur-sm group font-medium"
               >
                 <Settings className="w-4 h-4 mr-2 transition-transform group-hover:scale-110" />
-                設定
+                {t('nav.settings')}
               </button>
 
               <button
@@ -313,7 +315,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ onCreateSession }) => {
                 className="w-full flex items-center justify-center px-4 py-3 bg-red-50/80 text-red-600 rounded-xl hover:bg-red-100/80 shadow-soft-md hover:shadow-soft-lg transition-all duration-200 border border-red-200/50 backdrop-blur-sm group font-medium"
               >
                 <LogOut className="w-4 h-4 mr-2 transition-transform group-hover:scale-110" />
-                登出
+                {t('nav.logout')}
               </button>
             </>
           )}
@@ -321,7 +323,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ onCreateSession }) => {
           {loading && !isCollapsed && (
             <div className="mt-3 flex items-center justify-center text-xs text-gray-500">
               <div className="animate-spin w-4 h-4 border-2 border-gray-300 border-t-blue-600 rounded-full mr-2"></div>
-              載入中...
+              {t('common.loading')}
             </div>
           )}
         </div>

@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { commonPathApi, CommonPath } from '../services/api';
 import toast from 'react-hot-toast';
+import i18n from '../i18n';
 
 export type { CommonPath };
 
@@ -16,7 +17,7 @@ export const useSettings = () => {
       setCommonPaths(paths);
     } catch (error) {
       console.error('Failed to load common paths:', error);
-      toast.error('無法載入常用路徑');
+      toast.error(i18n.t('settings.loadPathsFailed'));
       // 使用空陣列作為後備
       setCommonPaths([]);
     } finally {
@@ -42,7 +43,7 @@ export const useSettings = () => {
       return true;
     } catch (error) {
       console.error('Failed to save settings:', error);
-      toast.error('儲存設定失敗');
+      toast.error(i18n.t('settings.saveFailed'));
       return false;
     }
   };
@@ -56,11 +57,11 @@ export const useSettings = () => {
       // 觸發自定義事件以通知其他元件
       window.dispatchEvent(new Event('settings-updated'));
       
-      toast.success('已重置為預設設定');
+      toast.success(i18n.t('settings.resetDone'));
       return true;
     } catch (error) {
       console.error('Failed to reset settings:', error);
-      toast.error('重置設定失敗');
+      toast.error(i18n.t('settings.resetFailed'));
       return false;
     }
   };
@@ -80,11 +81,11 @@ export const useSettings = () => {
       // 觸發自定義事件
       window.dispatchEvent(new Event('settings-updated'));
       
-      toast.success('已新增常用路徑');
+      toast.success(i18n.t('settings.pathAdded'));
       return true;
     } catch (error) {
       console.error('Failed to add common path:', error);
-      toast.error('新增常用路徑失敗');
+      toast.error(i18n.t('settings.pathAddFailed'));
       return false;
     }
   };
@@ -101,11 +102,11 @@ export const useSettings = () => {
       // 觸發自定義事件
       window.dispatchEvent(new Event('settings-updated'));
       
-      toast.success('已更新常用路徑');
+      toast.success(i18n.t('settings.pathUpdated'));
       return true;
     } catch (error) {
       console.error('Failed to update common path:', error);
-      toast.error('更新常用路徑失敗');
+      toast.error(i18n.t('settings.pathUpdateFailed'));
       return false;
     }
   };
@@ -120,11 +121,11 @@ export const useSettings = () => {
       // 觸發自定義事件
       window.dispatchEvent(new Event('settings-updated'));
       
-      toast.success('已刪除常用路徑');
+      toast.success(i18n.t('settings.pathDeleted'));
       return true;
     } catch (error) {
       console.error('Failed to delete common path:', error);
-      toast.error('刪除常用路徑失敗');
+      toast.error(i18n.t('settings.pathDeleteFailed'));
       return false;
     }
   };

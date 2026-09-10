@@ -7,12 +7,14 @@ import { cn } from '../../utils';
 import { Tooltip } from '../Common/Tooltip';
 import { useIsMobile } from '../../hooks/useMediaQuery';
 import { useSessionsContext } from '../../contexts/SessionsContext';
+import { useTranslation } from 'react-i18next';
 
 interface SplitViewProps {
   onCreateSession: () => void;
 }
 
 export const SplitView: React.FC<SplitViewProps> = ({ onCreateSession }) => {
+  const { t } = useTranslation();
   const { sessionId } = useParams();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
@@ -175,7 +177,7 @@ export const SplitView: React.FC<SplitViewProps> = ({ onCreateSession }) => {
             {/* 面板控制按鈕 - 左上角 */}
             <div className="absolute top-4 left-4 z-10 flex items-center space-x-2">
               {isMobile ? (
-                <Tooltip content={searchParams.get('from') === 'work-item' ? "返回 Work Item" : "返回列表"}>
+                <Tooltip content={searchParams.get('from') === 'work-item' ? t('splitView.backToWorkItem') : t('splitView.backToList')}>
                   <button
                     onClick={handleClose}
                     className="p-2 bg-white rounded-lg shadow-md hover:shadow-lg transition-shadow"
@@ -186,7 +188,7 @@ export const SplitView: React.FC<SplitViewProps> = ({ onCreateSession }) => {
               ) : (
                 <>
                   {searchParams.get('from') === 'work-item' && (
-                    <Tooltip content="返回 Work Item">
+                    <Tooltip content={t('splitView.backToWorkItem')}>
                       <button
                         onClick={handleClose}
                         className="p-2 bg-white rounded-lg shadow-md hover:shadow-lg transition-shadow"
@@ -195,7 +197,7 @@ export const SplitView: React.FC<SplitViewProps> = ({ onCreateSession }) => {
                       </button>
                     </Tooltip>
                   )}
-                  <Tooltip content="全屏">
+                  <Tooltip content={t('splitView.fullscreen')}>
                     <button
                       onClick={toggleFullScreen}
                       className="p-2 bg-white rounded-lg shadow-md hover:shadow-lg transition-shadow"
@@ -203,7 +205,7 @@ export const SplitView: React.FC<SplitViewProps> = ({ onCreateSession }) => {
                       <Maximize2 className="w-4 h-4 text-gray-600" />
                     </button>
                   </Tooltip>
-                  <Tooltip content="關閉">
+                  <Tooltip content={t('common.close')}>
                     <button
                       onClick={() => navigate('/')}
                       className="p-2 bg-white rounded-lg shadow-md hover:shadow-lg transition-shadow"
@@ -227,7 +229,7 @@ export const SplitView: React.FC<SplitViewProps> = ({ onCreateSession }) => {
           {/* 面板控制按鈕 - 左上角 */}
           <div className="absolute top-4 left-4 z-10 flex items-center space-x-2">
             {searchParams.get('from') === 'work-item' && (
-              <Tooltip content="返回 Work Item">
+              <Tooltip content={t('splitView.backToWorkItem')}>
                 <button
                   onClick={handleClose}
                   className="p-2 bg-white rounded-lg shadow-md hover:shadow-lg transition-shadow"
@@ -236,7 +238,7 @@ export const SplitView: React.FC<SplitViewProps> = ({ onCreateSession }) => {
                 </button>
               </Tooltip>
             )}
-            <Tooltip content="還原">
+            <Tooltip content={t('splitView.restore')}>
               <button
                 onClick={toggleFullScreen}
                 className="p-2 bg-white rounded-lg shadow-md hover:shadow-lg transition-shadow"
@@ -244,7 +246,7 @@ export const SplitView: React.FC<SplitViewProps> = ({ onCreateSession }) => {
                 <Minimize2 className="w-4 h-4 text-gray-600" />
               </button>
             </Tooltip>
-            <Tooltip content="關閉">
+            <Tooltip content={t('common.close')}>
               <button
                 onClick={() => navigate('/')}
                 className="p-2 bg-white rounded-lg shadow-md hover:shadow-lg transition-shadow"

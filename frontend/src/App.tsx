@@ -17,8 +17,10 @@ import { WorkItemDetailPage } from './pages/WorkItemDetailPage';
 import AgentPromptsPage from './pages/AgentPromptsPage';
 import AgentPromptDetailPage from './pages/AgentPromptDetailPage';
 import { GlassDemo } from './pages/GlassDemo';
+import { useTranslation } from 'react-i18next';
 
 function App() {
+  const { t } = useTranslation();
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const { isConnected, connectionError } = useWebSocket();
   
@@ -47,7 +49,7 @@ function App() {
                             </div>
                             <div className="ml-3">
                               <p className="text-sm text-yellow-700">
-                                {connectionError ? `連線錯誤: ${connectionError.message}` : '正在連線到伺服器...'}
+                                {connectionError ? t('app.connectionError', { message: connectionError.message }) : t('app.connecting')}
                               </p>
                             </div>
                           </div>

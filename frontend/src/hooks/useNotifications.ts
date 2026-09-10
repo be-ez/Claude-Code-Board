@@ -2,21 +2,22 @@ import { useEffect, useCallback } from 'react';
 import { useWebSocket } from './useWebSocket';
 import { SessionStatus } from '../types/session.types';
 import toast from 'react-hot-toast';
+import i18n from '../i18n';
 
 export const useNotifications = () => {
   const { addEventListener, removeEventListener } = useWebSocket();
 
   const getStatusMessage = useCallback((status: string): string => {
     const statusMap: Record<string, { message: string; icon: string }> = {
-      'processing': { message: '開始處理', icon: '🔄' },
-      'idle': { message: '處理完成', icon: '✅' },
-      'completed': { message: '已完成', icon: '🎉' },
-      'error': { message: '發生錯誤', icon: '❌' },
-      'interrupted': { message: '已中斷', icon: '⚠️' }
+      'processing': { message: i18n.t('notify.started'), icon: '🔄' },
+      'idle': { message: i18n.t('notify.completed'), icon: '✅' },
+      'completed': { message: i18n.t('common.completed'), icon: '🎉' },
+      'error': { message: i18n.t('session.hasError'), icon: '❌' },
+      'interrupted': { message: i18n.t('notify.interrupted'), icon: '⚠️' }
     };
 
     const statusInfo = statusMap[status.toLowerCase()];
-    if (!statusInfo) return `狀態更新: ${status}`;
+    if (!statusInfo) return i18n.t('notify.statusUpdate', { status: status });
 
     return `${statusInfo.icon} Session ${statusInfo.message}`;
   }, []);
@@ -55,7 +56,7 @@ export const useNotifications = () => {
 
     const handleGlobalProcessExit = (data: { sessionId: string; code: number | null }) => {
       if (data.code !== 0) {
-        toast.error(`❌ Session 執行失敗 (代碼: ${data.code || '未知'})`);
+        toast.error(i18n.t('notify.sessionFailed', { code: data.code || i18n.t('common.unknown') }));
       }
     };
 

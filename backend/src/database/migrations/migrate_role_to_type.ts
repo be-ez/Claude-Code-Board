@@ -239,7 +239,7 @@ export class MigrateRoleToTypeMigration {
     `);
     
     if (roleTypeMatch?.count !== totalMessages?.count) {
-      throw new Error(`遷移驗證失敗: role 與 type 資料不一致`);
+      throw new Error(`Migration validation failed: role and type data are inconsistent`);
     }
     
     // 檢查約束條件

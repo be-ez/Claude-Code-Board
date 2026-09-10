@@ -10,6 +10,7 @@ import { SessionCard } from "./SessionCard";
 import { SearchBar } from "../Common/SearchBar";
 import { SortSelector } from "../Common/SortSelector";
 import { sortSessions, getSortOptions, SortType } from "../../utils/sessionSort";
+import { useTranslation } from 'react-i18next';
 
 interface SessionListProps {
   onCreateSession: () => void;
@@ -29,6 +30,7 @@ interface KanbanColumnProps {
 }
 
 const KanbanColumn: React.FC<KanbanColumnProps & { sortType?: SortType }> = ({ title, color, sessions, searchTerm, onComplete, onInterrupt, onResume, onDelete, onReorder, disableDrag = false, sortType = 'updated_desc' }) => {
+  const { t } = useTranslation();
   const [draggedIndex, setDraggedIndex] = useState<number | null>(null);
   const [dragOverIndex, setDragOverIndex] = useState<number | null>(null);
   // 過濾並排序 sessions
@@ -141,7 +143,7 @@ const KanbanColumn: React.FC<KanbanColumnProps & { sortType?: SortType }> = ({ t
       <div className="p-3 space-y-2 flex-1 overflow-y-auto">
         {filteredSessions.length === 0 ? (
           <div className="text-center py-8 text-gray-500">
-            <p className="text-sm">沒有 Sessions</p>
+            <p className="text-sm">{t('sessionList.empty')}</p>
           </div>
         ) : (
           filteredSessions.map((session, index) => (
@@ -156,6 +158,7 @@ const KanbanColumn: React.FC<KanbanColumnProps & { sortType?: SortType }> = ({ t
 };
 
 export const SessionList: React.FC<SessionListProps> = ({ onCreateSession }) => {
+  const { t } = useTranslation();
   const [searchTerm, setSearchTerm] = useState("");
   const [activeTab, setActiveTab] = useState<"processing" | "idle" | "completed">("idle");
   const [sortType, setSortType] = useState<SortType>('updated_desc');
@@ -166,40 +169,40 @@ export const SessionList: React.FC<SessionListProps> = ({ onCreateSession }) => 
   const handleComplete = async (sessionId: string) => {
     try {
       await completeSession(sessionId);
-      toast.success("Session 已標記為完成");
+      toast.success(t('sessionDetail.markedComplete'));
     } catch (error) {
-      toast.error("無法完成 Session");
+      toast.error(t('sessionDetail.completeFailed'));
     }
   };
 
   const handleInterrupt = async (sessionId: string) => {
     try {
       await interruptSession(sessionId);
-      toast.success("Session 已中斷");
+      toast.success(t('sessionDetail.interrupted'));
     } catch (error) {
-      toast.error("無法中斷 Session");
+      toast.error(t('sessionDetail.interruptFailed'));
     }
   };
 
   const handleResume = async (sessionId: string) => {
     try {
       await resumeSession(sessionId);
-      toast.success("Session 已恢復");
+      toast.success(t('sessionDetail.resumed'));
     } catch (error) {
-      toast.error("無法恢復 Session");
+      toast.error(t('sessionDetail.resumeFailed'));
     }
   };
 
   const handleDelete = async (sessionId: string) => {
-    if (!confirm("確定要刪除這個 Session 嗎？此操作無法復原。")) {
+    if (!confirm(t('sessionDetail.confirmDelete'))) {
       return;
     }
 
     try {
       await deleteSession(sessionId);
-      toast.success("Session 已刪除");
+      toast.success(t('sessionDetail.deleted'));
     } catch (error) {
-      toast.error("無法刪除 Session");
+      toast.error(t('sessionDetail.deleteFailed'));
     }
   };
   
@@ -218,7 +221,7 @@ export const SessionList: React.FC<SessionListProps> = ({ onCreateSession }) => 
       <div className="text-center py-12">
         <div className="text-red-600 mb-4">{error}</div>
         <button onClick={() => window.location.reload()} className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
-          重新載入
+          {t('common.reload')}
         </button>
       </div>
     );
@@ -243,7 +246,7 @@ export const SessionList: React.FC<SessionListProps> = ({ onCreateSession }) => 
             
             {/* 搜尋框 */}
             <SearchBar
-              placeholder="搜尋..."
+              placeholder={t('common.search')}
               onSearch={setSearchTerm}
               defaultValue={searchTerm}
               className="w-24 sm:w-32"
@@ -252,7 +255,7 @@ export const SessionList: React.FC<SessionListProps> = ({ onCreateSession }) => 
             {/* 建立按鈕 */}
             <button onClick={onCreateSession} className="btn-primary flex items-center gap-2 text-sm">
               <Plus className="w-4 h-4" />
-              <span className="hidden sm:inline">建立</span>
+              <span className="hidden sm:inline">{t('common.create')}</span>
             </button>
           </div>
         </div>
@@ -275,7 +278,7 @@ export const SessionList: React.FC<SessionListProps> = ({ onCreateSession }) => 
         <div className={`h-full ${deviceType === "mobile" ? "p-4" : "p-6"}`}>
           {/* Kanban 看板 */}
           {sessions.length === 0 ? (
-            <EmptyState title="沒有找到 Sessions" description="還沒有建立任何 Sessions" actionText="建立第一個 Session" onAction={onCreateSession} />
+            <EmptyState title={t('sessionList.noResults')} description={t('sessionList.noneYet')} actionText={t('sessionList.createFirst')} onAction={onCreateSession} />
           ) : (
             <>
               {/* 行動版標籤頁 */}
@@ -283,13 +286,13 @@ export const SessionList: React.FC<SessionListProps> = ({ onCreateSession }) => 
                 <div className="glass-card rounded-xl shadow-soft p-1 mb-4 overflow-x-auto">
                   <div className="flex">
                     <button onClick={() => setActiveTab("processing")} className={`px-4 py-2 text-sm font-medium whitespace-nowrap rounded-lg transition-all ${activeTab === "processing" ? "bg-warning-100 text-warning-700 shadow-soft-sm" : "text-gray-500 hover:text-gray-700 hover:bg-gray-50"}`}>
-                      正在處理 ({sessionsByStatus[SessionStatus.PROCESSING]?.length || 0})
+                      {t('sessionList.processingCount', { count: sessionsByStatus[SessionStatus.PROCESSING]?.length || 0 })}
                     </button>
                     <button onClick={() => setActiveTab("idle")} className={`px-4 py-2 text-sm font-medium whitespace-nowrap rounded-lg transition-all ${activeTab === "idle" ? "bg-success-100 text-success-700 shadow-soft-sm" : "text-gray-500 hover:text-gray-700 hover:bg-gray-50"}`}>
-                      閒置 ({sessionsByStatus[SessionStatus.IDLE]?.length || 0})
+                      {t('sessionList.idleCount', { count: sessionsByStatus[SessionStatus.IDLE]?.length || 0 })}
                     </button>
                     <button onClick={() => setActiveTab("completed")} className={`px-4 py-2 text-sm font-medium whitespace-nowrap rounded-lg transition-all ${activeTab === "completed" ? "bg-primary-100 text-primary-700 shadow-soft-sm" : "text-gray-500 hover:text-gray-700 hover:bg-gray-50"}`}>
-                      已完成 ({[...(sessionsByStatus[SessionStatus.COMPLETED] || []), ...(sessionsByStatus[SessionStatus.ERROR] || []), ...(sessionsByStatus[SessionStatus.INTERRUPTED] || [])].length})
+                      {t('sessionList.completedCount', { count: [...(sessionsByStatus[SessionStatus.COMPLETED] || []), ...(sessionsByStatus[SessionStatus.ERROR] || []), ...(sessionsByStatus[SessionStatus.INTERRUPTED] || [])].length })}
                     </button>
                   </div>
                 </div>
@@ -299,13 +302,13 @@ export const SessionList: React.FC<SessionListProps> = ({ onCreateSession }) => 
                 {/* 行動版：根據選中的標籤顯示單一欄位 */}
                 {deviceType === "mobile" ? (
                   <>
-                    {activeTab === "processing" && <KanbanColumn title="正在處理" color="yellow" sessions={sessionsByStatus[SessionStatus.PROCESSING] || []} searchTerm={searchTerm} sortType={sortType} onComplete={handleComplete} onInterrupt={handleInterrupt} onResume={handleResume} onDelete={handleDelete} disableDrag={true} />}
+                    {activeTab === "processing" && <KanbanColumn title={t('sessionList.processing')} color="yellow" sessions={sessionsByStatus[SessionStatus.PROCESSING] || []} searchTerm={searchTerm} sortType={sortType} onComplete={handleComplete} onInterrupt={handleInterrupt} onResume={handleResume} onDelete={handleDelete} disableDrag={true} />}
 
-                    {activeTab === "idle" && <KanbanColumn title="閒置" color="green" sessions={sessionsByStatus[SessionStatus.IDLE] || []} searchTerm={searchTerm} sortType={sortType} onComplete={handleComplete} onInterrupt={handleInterrupt} onResume={handleResume} onDelete={handleDelete} onReorder={(reorderedSessions) => reorderSessionsByStatus(SessionStatus.IDLE, reorderedSessions)} />}
+                    {activeTab === "idle" && <KanbanColumn title={t('sessionList.idle')} color="green" sessions={sessionsByStatus[SessionStatus.IDLE] || []} searchTerm={searchTerm} sortType={sortType} onComplete={handleComplete} onInterrupt={handleInterrupt} onResume={handleResume} onDelete={handleDelete} onReorder={(reorderedSessions) => reorderSessionsByStatus(SessionStatus.IDLE, reorderedSessions)} />}
 
                     {activeTab === "completed" && (
                       <KanbanColumn
-                        title="已完成"
+                        title={t('common.completed')}
                         color="blue"
                         sessions={[...(sessionsByStatus[SessionStatus.COMPLETED] || []), ...(sessionsByStatus[SessionStatus.ERROR] || []), ...(sessionsByStatus[SessionStatus.INTERRUPTED] || [])]}
                         searchTerm={searchTerm}
@@ -335,12 +338,12 @@ export const SessionList: React.FC<SessionListProps> = ({ onCreateSession }) => 
                 ) : (
                   <>
                     {/* 桌面版和平板版：顯示所有欄位 */}
-                    <KanbanColumn title="正在處理" color="yellow" sessions={sessionsByStatus[SessionStatus.PROCESSING] || []} searchTerm={searchTerm} sortType={sortType} onComplete={handleComplete} onInterrupt={handleInterrupt} onResume={handleResume} onDelete={handleDelete} disableDrag={true} />
+                    <KanbanColumn title={t('sessionList.processing')} color="yellow" sessions={sessionsByStatus[SessionStatus.PROCESSING] || []} searchTerm={searchTerm} sortType={sortType} onComplete={handleComplete} onInterrupt={handleInterrupt} onResume={handleResume} onDelete={handleDelete} disableDrag={true} />
 
-                    <KanbanColumn title="閒置" color="green" sessions={sessionsByStatus[SessionStatus.IDLE] || []} searchTerm={searchTerm} sortType={sortType} onComplete={handleComplete} onInterrupt={handleInterrupt} onResume={handleResume} onDelete={handleDelete} onReorder={(reorderedSessions) => reorderSessionsByStatus(SessionStatus.IDLE, reorderedSessions)} />
+                    <KanbanColumn title={t('sessionList.idle')} color="green" sessions={sessionsByStatus[SessionStatus.IDLE] || []} searchTerm={searchTerm} sortType={sortType} onComplete={handleComplete} onInterrupt={handleInterrupt} onResume={handleResume} onDelete={handleDelete} onReorder={(reorderedSessions) => reorderSessionsByStatus(SessionStatus.IDLE, reorderedSessions)} />
 
                     <KanbanColumn
-                      title="已完成"
+                      title={t('common.completed')}
                       color="blue"
                       sessions={[...(sessionsByStatus[SessionStatus.COMPLETED] || []), ...(sessionsByStatus[SessionStatus.ERROR] || []), ...(sessionsByStatus[SessionStatus.INTERRUPTED] || [])]}
                       searchTerm={searchTerm}
