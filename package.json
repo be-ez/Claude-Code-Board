@@ -5,11 +5,15 @@
   "main": "backend/dist/server.js",
   "scripts": {
     "test": "cucumber-js",
+    "no-tracking": "sh scripts/no-tracking.sh apply",
+    "no-tracking:check": "sh scripts/no-tracking.sh check",
+    "no-tracking:restore": "sh scripts/no-tracking.sh restore",
+    "sync": "git pull && npm run no-tracking",
     "test:watch": "cucumber-js --watch",
     "test:backend": "cucumber-js features/backend",
-    "dev:backend": "cd backend && npm run dev",
-    "dev:frontend": "cd frontend && npm run dev",
-    "build": "npm run build:backend && npm run build:frontend",
+    "dev:backend": "npm run no-tracking && cd backend && npm run dev",
+    "dev:frontend": "npm run no-tracking && cd frontend && npm run dev",
+    "build": "npm run no-tracking && npm run build:backend && npm run build:frontend",
     "build:backend": "cd backend && npm run build",
     "build:frontend": "cd frontend && npm run build"
   },
