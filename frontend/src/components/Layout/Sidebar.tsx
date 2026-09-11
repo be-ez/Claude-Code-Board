@@ -16,6 +16,7 @@ import { cn } from '../../utils';
 import { SettingsModal } from '../Settings/SettingsModal';
 import { useAuth } from '../../contexts/AuthContext';
 import { Tooltip } from '../Common/Tooltip';
+import { ThemeToggle } from '../Common/ThemeToggle';
 import { useTranslation } from 'react-i18next';
 
 interface SidebarProps {
@@ -283,6 +284,8 @@ export const Sidebar: React.FC<SidebarProps> = ({ onCreateSession }) => {
                 </button>
               </Tooltip>
 
+              <ThemeToggle compact />
+
               <Tooltip content={t('nav.logout')} side="right">
                 <button
                   onClick={logout}
@@ -309,6 +312,8 @@ export const Sidebar: React.FC<SidebarProps> = ({ onCreateSession }) => {
                 <Settings className="w-4 h-4 mr-2 transition-transform group-hover:scale-110" />
                 {t('nav.settings')}
               </button>
+
+              <ThemeToggle />
 
               <button
                 onClick={logout}

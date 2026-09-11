@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
-import { X, Plus, Trash2, Settings, FolderOpen, Code, Home, MessageSquare, Languages, DownloadCloud } from 'lucide-react';
+import { X, Plus, Trash2, Settings, FolderOpen, Code, Home, MessageSquare, Languages, DownloadCloud, Palette } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { useSettings, CommonPath } from '../../hooks/useSettings';
 import { TaskTemplateSettings } from './TaskTemplateSettings';
 import { LanguageSettings } from './LanguageSettings';
+import { ThemeSettings } from './ThemeSettings';
 import { ImportSessionsSettings } from './ImportSessionsSettings';
 import { useTranslation } from 'react-i18next';
 
@@ -20,7 +21,7 @@ const iconComponents = {
   Home,
 };
 
-type TabType = 'paths' | 'templates' | 'import' | 'language';
+type TabType = 'paths' | 'templates' | 'import' | 'appearance' | 'language';
 
 export const SettingsModal: React.FC<SettingsModalProps> = ({
   isOpen,
@@ -136,10 +137,10 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
         </div>
 
         {/* Tab 導航 */}
-        <div className="flex border-b border-gray-200 px-4 sm:px-6">
+        <div className="flex border-b border-gray-200 px-4 sm:px-6 overflow-x-auto">
           <button
             onClick={() => setActiveTab('paths')}
-            className={`flex items-center space-x-2 px-4 py-3 border-b-2 transition-colors ${
+            className={`flex items-center space-x-2 px-4 py-3 border-b-2 whitespace-nowrap transition-colors ${
               activeTab === 'paths'
                 ? 'border-blue-600 text-blue-600'
                 : 'border-transparent text-gray-500 hover:text-gray-700'
@@ -150,7 +151,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
           </button>
           <button
             onClick={() => setActiveTab('templates')}
-            className={`flex items-center space-x-2 px-4 py-3 border-b-2 transition-colors ${
+            className={`flex items-center space-x-2 px-4 py-3 border-b-2 whitespace-nowrap transition-colors ${
               activeTab === 'templates'
                 ? 'border-blue-600 text-blue-600'
                 : 'border-transparent text-gray-500 hover:text-gray-700'
@@ -161,7 +162,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
           </button>
           <button
             onClick={() => setActiveTab('import')}
-            className={`flex items-center space-x-2 px-4 py-3 border-b-2 transition-colors ${
+            className={`flex items-center space-x-2 px-4 py-3 border-b-2 whitespace-nowrap transition-colors ${
               activeTab === 'import'
                 ? 'border-blue-600 text-blue-600'
                 : 'border-transparent text-gray-500 hover:text-gray-700'
@@ -171,8 +172,19 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
             <span>{t('importSessions.tab')}</span>
           </button>
           <button
+            onClick={() => setActiveTab('appearance')}
+            className={`flex items-center space-x-2 px-4 py-3 border-b-2 whitespace-nowrap transition-colors ${
+              activeTab === 'appearance'
+                ? 'border-blue-600 text-blue-600'
+                : 'border-transparent text-gray-500 hover:text-gray-700'
+            }`}
+          >
+            <Palette className="w-4 h-4" />
+            <span>{t('theme.label')}</span>
+          </button>
+          <button
             onClick={() => setActiveTab('language')}
-            className={`flex items-center space-x-2 px-4 py-3 border-b-2 transition-colors ${
+            className={`flex items-center space-x-2 px-4 py-3 border-b-2 whitespace-nowrap transition-colors ${
               activeTab === 'language'
                 ? 'border-blue-600 text-blue-600'
                 : 'border-transparent text-gray-500 hover:text-gray-700'
@@ -305,6 +317,8 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
           {activeTab === 'templates' && <TaskTemplateSettings />}
 
           {activeTab === 'import' && <ImportSessionsSettings onImported={onClose} />}
+
+          {activeTab === 'appearance' && <ThemeSettings />}
 
           {activeTab === 'language' && <LanguageSettings />}
         </div>

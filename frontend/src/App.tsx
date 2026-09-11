@@ -9,6 +9,7 @@ import { useWebSocket } from './hooks/useWebSocket';
 import { useNotifications } from './hooks/useNotifications';
 import { SessionsProvider } from './contexts/SessionsContext';
 import { AuthProvider } from './contexts/AuthContext';
+import { ThemeProvider } from './contexts/ThemeContext';
 import { ProtectedRoute } from './components/Auth/ProtectedRoute';
 import { LoginPage } from './components/Auth/LoginPage';
 import { WorkflowStages } from './pages/WorkflowStages';
@@ -29,7 +30,8 @@ function App() {
   
   return (
     <ErrorBoundary>
-      <Router>
+      <ThemeProvider>
+        <Router>
         <AuthProvider>
           <div className="min-h-screen bg-gray-50 relative">
             <Routes>
@@ -95,7 +97,8 @@ function App() {
               />
             </div>
         </AuthProvider>
-      </Router>
+        </Router>
+      </ThemeProvider>
     </ErrorBoundary>
   );
 }

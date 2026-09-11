@@ -67,7 +67,7 @@ const Diff: React.FC<{ before: string; after: string }> = ({ before, after }) =>
 };
 
 const Command: React.FC<{ command: string }> = ({ command }) => (
-  <pre className="text-xs bg-gray-900 text-gray-100 p-2.5 rounded-lg overflow-x-auto font-mono">
+  <pre className="text-xs bg-slate-900 text-slate-100 p-2.5 rounded-lg overflow-x-auto font-mono">
     <code>
       <span className="text-green-400 select-none mr-2">$</span>
       {command}

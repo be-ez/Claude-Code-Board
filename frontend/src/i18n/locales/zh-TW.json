@@ -396,6 +396,14 @@
     "description": "如果你看到這個頁面，表示 React 應用正常運行。",
     "title": "Claude Code Session Manager - 測試頁面"
   },
+  "theme": {
+    "label": "外觀",
+    "light": "淺色",
+    "dark": "深色",
+    "auto": "自動",
+    "autoResolved": "（目前為{{theme}}）",
+    "hint": "「自動」會跟隨系統設定。你的選擇會記在這個瀏覽器中。"
+  },
   "time": {
     "daysAgo": "{{count}} 天前",
     "hoursAgo": "{{count}} 小時前",

@@ -58,7 +58,7 @@ export const AnsiOutput: React.FC<AnsiOutputProps> = ({ content, collapseAfterLi
 
   return (
     <div className="mt-1.5">
-      <pre className="text-xs bg-gray-900 text-gray-100 p-3 rounded-lg overflow-x-auto border border-gray-800 shadow-inner font-mono leading-relaxed">
+      <pre className="text-xs bg-slate-900 text-slate-100 p-3 rounded-lg overflow-x-auto border border-slate-800 shadow-inner font-mono leading-relaxed">
         <code>
           {parsed.map((chunks, lineIndex) => (
             <div key={lineIndex} className="whitespace-pre">

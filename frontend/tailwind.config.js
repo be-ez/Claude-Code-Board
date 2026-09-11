@@ -1,5 +1,90 @@
 /** @type {import('tailwindcss').Config} */
+const palette = require('tailwindcss/colors');
+const plugin = require('tailwindcss/plugin');
+
+/**
+ * Theme tokens.
+ *
+ * Every colour below is emitted as a CSS variable (`--c-*`) with a light and a
+ * dark value, and the Tailwind palette points at that variable. That keeps an
+ * existing class like `text-gray-700` meaning "body text" in both themes,
+ * instead of needing a `dark:` twin on all ~600 call sites.
+ */
+const toRgb = (hex) => {
+  const h = hex.replace('#', '');
+  const n = parseInt(h.length === 3 ? h.replace(/./g, (c) => c + c) : h, 16);
+  return `${(n >> 16) & 255} ${(n >> 8) & 255} ${n & 255}`;
+};
+
+const tokens = {};
+/** Register a token and return the Tailwind colour value that reads it. */
+const token = (name, light, dark) => {
+  tokens[name] = { light: toRgb(light), dark: toRgb(dark) };
+  return `rgb(var(--c-${name}) / <alpha-value>)`;
+};
+
+// Neutral ramp. The shade number means "how much contrast against the page",
+// so in dark mode the ramp runs the other way round in absolute lightness.
+const GRAY = {
+  50: ['#f9fafb', '#1e293b'],
+  100: ['#f3f4f6', '#273449'],
+  200: ['#e5e7eb', '#334155'],
+  300: ['#d1d5db', '#475569'],
+  400: ['#9ca3af', '#7a8798'],
+  500: ['#6b7280', '#97a3b4'],
+  600: ['#4b5563', '#b6c0cd'],
+  700: ['#374151', '#d4dbe4'],
+  800: ['#1f2937', '#e8ecf1'],
+  900: ['#111827', '#f8fafc'],
+};
+const gray = Object.fromEntries(
+  Object.entries(GRAY).map(([shade, [light, dark]]) => [shade, token(`gray-${shade}`, light, dark)])
+);
+
+// `white` is two different things here: an opaque surface (`bg-white`,
+// `bg-white/50`) and a highlight edge (`border-white/40`). Only the surface
+// follows the theme — `text-white` on coloured buttons stays white.
+const surface = token('surface', '#ffffff', '#1e293b');
+const edge = token('edge', '#ffffff', '#94a3b8');
+
+// Accent ramps: pale tints are used as backgrounds and deep shades as text,
+// so the two halves swap roles in dark mode. `slate` is deliberately excluded
+// so it stays available as a fixed, always-dark scale (code, terminal output).
+const ACCENTS = [
+  'blue', 'indigo', 'violet', 'purple', 'fuchsia', 'pink', 'rose',
+  'red', 'orange', 'amber', 'yellow', 'lime', 'green', 'emerald', 'teal', 'cyan', 'sky',
+];
+// The semantic palettes below are re-spellings of stock Tailwind ramps, so
+// they follow the same rules.
+const SEMANTIC = { primary: 'blue', success: 'green', warning: 'yellow', danger: 'red' };
+const RAMPS = [
+  ...ACCENTS.map((name) => [name, name]),
+  ...Object.entries(SEMANTIC),
+];
+const TINT = { 50: 950, 100: 900, 200: 800, 300: 700 };
+const INK = { 600: 400, 700: 300, 800: 300, 900: 200 };
+
+const ramp = (map, suffix) =>
+  Object.fromEntries(
+    RAMPS.map(([name, source]) => [
+      name,
+      Object.fromEntries(
+        Object.entries(map).map(([shade, darkShade]) => [
+          shade,
+          token(`${name}-${shade}-${suffix}`, palette[source][shade], palette[source][darkShade]),
+        ])
+      ),
+    ])
+  );
+
+const tints = ramp(TINT, 'bg');
+const inks = ramp(INK, 'fg');
+
+const declarations = (variant) =>
+  Object.fromEntries(Object.entries(tokens).map(([name, value]) => [`--c-${name}`, value[variant]]));
+
 export default {
+  darkMode: 'class',
   content: [
     "./index.html",
     "./src/**/*.{js,ts,jsx,tsx}",
@@ -7,6 +92,7 @@ export default {
   theme: {
     extend: {
       colors: {
+        gray,
         primary: {
           50: '#eff6ff',
           100: '#dbeafe',
@@ -55,24 +141,20 @@ export default {
           800: '#991b1b',
           900: '#7f1d1d',
         },
-        gray: {
-          50: '#f9fafb',
-          100: '#f3f4f6',
-          200: '#e5e7eb',
-          300: '#d1d5db',
-          400: '#9ca3af',
-          500: '#6b7280',
-          600: '#4b5563',
-          700: '#374151',
-          800: '#1f2937',
-          900: '#111827',
-        },
         glass: {
-          light: 'rgba(255, 255, 255, 0.7)',
-          border: 'rgba(0, 0, 0, 0.08)',
-          hover: 'rgba(255, 255, 255, 0.8)',
+          light: 'var(--glass-bg)',
+          border: 'var(--glass-border)',
+          hover: 'var(--glass-bg-hover)',
         }
       },
+      // Per-utility overrides: the same shade plays opposite roles depending on
+      // whether it paints a surface or paints text.
+      backgroundColor: { white: surface, ...tints },
+      gradientColorStops: { white: surface, ...tints },
+      borderColor: { white: edge, ...tints },
+      ringColor: { white: edge },
+      divideColor: { white: edge },
+      textColor: inks,
       fontFamily: {
         sans: ['Inter', 'system-ui', 'sans-serif'],
       },
@@ -131,5 +213,13 @@ export default {
       },
     },
   },
-  plugins: [require("tailwindcss-animate")],
+  plugins: [
+    require("tailwindcss-animate"),
+    plugin(({ addBase }) => {
+      addBase({
+        ':root': { 'color-scheme': 'light', ...declarations('light') },
+        '.dark': { 'color-scheme': 'dark', ...declarations('dark') },
+      });
+    }),
+  ],
 }

@@ -5,6 +5,26 @@
     <link rel="icon" type="image/png" href="/asset/logo.png" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Claude Code Board - Session Manager</title>
+    <script>
+      // Paint the stored theme before first render so a dark reload never
+      // flashes light. Mirrors applyTheme() in src/contexts/ThemeContext.tsx.
+      (function () {
+        try {
+          var stored = localStorage.getItem('ccb-theme');
+          var pref = stored === 'light' || stored === 'dark' ? stored : 'auto';
+          var resolved =
+            pref === 'auto'
+              ? window.matchMedia('(prefers-color-scheme: dark)').matches
+                ? 'dark'
+                : 'light'
+              : pref;
+          var root = document.documentElement;
+          root.classList.toggle('dark', resolved === 'dark');
+          root.dataset.theme = resolved;
+          root.style.colorScheme = resolved;
+        } catch (e) {}
+      })();
+    </script>
   </head>
   <body>
     <div id="root"></div>

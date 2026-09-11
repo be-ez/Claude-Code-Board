@@ -396,6 +396,14 @@
     "description": "If you can see this page, the React app is running correctly.",
     "title": "Claude Code Session Manager - Test Page"
   },
+  "theme": {
+    "label": "Appearance",
+    "light": "Light",
+    "dark": "Dark",
+    "auto": "Auto",
+    "autoResolved": "(currently {{theme}})",
+    "hint": "Auto follows your system setting. Your choice is remembered in this browser."
+  },
   "time": {
     "daysAgo": "{{count}} days ago",
     "hoursAgo": "{{count}} hours ago",
